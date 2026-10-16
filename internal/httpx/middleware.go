@@ -201,20 +201,24 @@ func APIKey(key string) Middleware {
 	}
 }
 
-// ClientIP takes the first X-Forwarded-For entry (set by the Container Apps
-// ingress), falling back to RemoteAddr.
+// ClientIP takes the first X-Forwarded-For entry (set by the App Service or
+// Container Apps front end), falling back to RemoteAddr. App Service writes
+// the entry as "ip:port", so the port is stripped.
 func ClientIP(r *http.Request) string {
 	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
 		first, _, _ := strings.Cut(xff, ",")
-		if ip := strings.TrimSpace(first); ip != "" {
+		if ip := stripPort(strings.TrimSpace(first)); ip != "" {
 			return ip
 		}
 	}
-	host, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
-		return r.RemoteAddr
+	return stripPort(r.RemoteAddr)
+}
+
+func stripPort(addr string) string {
+	if host, _, err := net.SplitHostPort(addr); err == nil {
+		return host
 	}
-	return host
+	return addr
 }
 
 // BodyLimit caps the request body; reads past the limit fail with

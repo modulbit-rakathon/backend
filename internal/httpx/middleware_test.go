@@ -117,9 +117,16 @@ func TestClientIP(t *testing.T) {
 	if got := ClientIP(r); got != "9.9.9.9" {
 		t.Errorf("RemoteAddr: got %q", got)
 	}
-	r.Header.Set("X-Forwarded-For", " 1.1.1.1 , 2.2.2.2")
-	if got := ClientIP(r); got != "1.1.1.1" {
-		t.Errorf("XFF: got %q", got)
+	for xff, want := range map[string]string{
+		" 1.1.1.1 , 2.2.2.2":         "1.1.1.1",
+		"1.1.1.1:54321, 2.2.2.2":     "1.1.1.1",
+		"2001:db8::1":                "2001:db8::1",
+		"[2001:db8::1]:443, 1.1.1.1": "2001:db8::1",
+	} {
+		r.Header.Set("X-Forwarded-For", xff)
+		if got := ClientIP(r); got != want {
+			t.Errorf("XFF %q: got %q, want %q", xff, got, want)
+		}
 	}
 }
 
