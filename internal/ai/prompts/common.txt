@@ -8,3 +8,4 @@ Pravidla:
 5. Nikdy nevracej jména osob, data narození, rodná čísla, adresy, čísla pojištěnců ani jiné identifikátory osob. Ignoruj je, i když jsou na fotce.
 6. "unreadable_items": počet položek (léků), které jsou na fotce vidět, ale nejdou přečíst ani jejich název. Takové položky do "medications" nedávej.
 7. Pokud na fotce žádný lék není, vrať prázdné "medications" a "unreadable_items": 0.
+8. "box_match" je null, pokud ti zadání níže neřekne jinak.

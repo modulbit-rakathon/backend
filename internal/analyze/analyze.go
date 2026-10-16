@@ -34,7 +34,7 @@ var sources = []string{"note", "box", "regimen"}
 
 // Extractor reads medications from one image. *ai.Client implements it.
 type Extractor interface {
-	Extract(ctx context.Context, model, source, mime string, img []byte) (ai.Result, error)
+	Extract(ctx context.Context, model, source, mime string, img []byte, boxes []string) (ai.Result, error)
 }
 
 type Handler struct {
@@ -86,9 +86,11 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	httpx.WriteJSON(w, http.StatusOK, resp)
 }
 
-// extractAll calls the model once per image in parallel. The first failure
-// cancels the remaining calls. In mock mode every image of a kind returns
-// that kind's fixture, once per kind.
+// extractAll calls the model once per image. Boxes and regimens go first, in
+// parallel; notes follow with the box names read, so the model can link a
+// hard-to-read line to its box. The first failure cancels the remaining
+// calls. In mock mode every image of a kind returns that kind's fixture,
+// once per kind.
 func (h *Handler) extractAll(ctx context.Context, images []image) ([]ai.Result, error) {
 	results := make([]ai.Result, len(images))
 	if h.Mock {
@@ -105,16 +107,25 @@ func (h *Handler) extractAll(ctx context.Context, images []image) ([]ai.Result, 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	errs := make([]error, len(images))
-	var wg sync.WaitGroup
-	for i, img := range images {
-		wg.Go(func() {
-			results[i], errs[i] = h.AI.Extract(ctx, h.Model, img.source, img.mime, img.data)
-			if errs[i] != nil {
-				cancel()
+	run := func(notes bool, boxes []string) {
+		var wg sync.WaitGroup
+		for i, img := range images {
+			if (img.source == "note") != notes {
+				continue
 			}
-		})
+			wg.Go(func() {
+				results[i], errs[i] = h.AI.Extract(ctx, h.Model, img.source, img.mime, img.data, boxes)
+				if errs[i] != nil {
+					cancel()
+				}
+			})
+		}
+		wg.Wait()
 	}
-	wg.Wait()
+	run(false, nil)
+	if ctx.Err() == nil {
+		run(true, boxNames(images, results))
+	}
 
 	info := httpx.Info(ctx)
 	for _, res := range results {
@@ -123,12 +134,29 @@ func (h *Handler) extractAll(ctx context.Context, images []image) ([]ai.Result, 
 	return results, firstError(errs)
 }
 
+// boxNames lists the distinct box names read so far, in photo order.
+func boxNames(images []image, results []ai.Result) []string {
+	var names []string
+	for i, res := range results {
+		if images[i].source != "box" {
+			continue
+		}
+		for _, it := range res.Items {
+			if !slices.Contains(names, it.Name) {
+				names = append(names, it.Name)
+			}
+		}
+	}
+	return names
+}
+
 // build turns model output into the response: ids, kinds and sources, a
 // catalogue match per drug, active substance from the catalogue where the
 // photo had none, then notes and boxes merged.
 func (h *Handler) build(images []image, results []ai.Result) model.AnalyzeResponse {
 	resp := model.AnalyzeResponse{Medications: []model.Medication{}}
 	var meds []model.Medication
+	var links []*string // per med: the box a note line was linked to
 	for i, res := range results {
 		source := images[i].source
 		resp.UnreadableItems += res.UnreadableItems
@@ -163,12 +191,76 @@ func (h *Handler) build(images []image, results []ai.Result) model.AnalyzeRespon
 				}
 			}
 			meds = append(meds, m)
+			links = append(links, it.BoxMatch)
 		}
 	}
 	if len(meds) > 0 {
-		resp.Medications = h.Catalog.Merge(meds)
+		resp.Medications = h.Catalog.MergeLinked(meds, linkNotesToBoxes(meds, links))
 	}
 	return resp
+}
+
+// linkNotesToBoxes returns note item id -> box item id for each note line
+// the model linked to a box read in the same request, and gives the line
+// that box's catalogue result, so a misread name ("Keron" for Kreon) neither
+// shows as a name conflict nor keeps a wrong match. The name stays as
+// written and a differing strength still shows as a conflict. Each box takes
+// at most one line.
+//
+// A line the model left unlinked still joins a box when its name was read
+// with certainty and its brand words start the box's brand words
+// ("Bisoprolol" and "Bisoprolol PMCS 10 mg"), and only one free box fits.
+func linkNotesToBoxes(meds []model.Medication, boxMatch []*string) map[string]string {
+	links := map[string]string{}
+	taken := map[string]bool{}
+	link := func(i int, box model.Medication) {
+		taken[box.ID] = true
+		links[meds[i].ID] = box.ID
+		if box.Catalog != nil {
+			m := *box.Catalog
+			meds[i].Catalog = &m
+		}
+		if meds[i].ActiveSubstance == nil {
+			meds[i].ActiveSubstance = box.ActiveSubstance
+		}
+	}
+	isLine := func(m model.Medication) bool { return m.Source == model.SourceNote && m.Kind == model.KindDrug }
+	isFreeBox := func(m model.Medication) bool { return m.Source == model.SourceBox && !taken[m.ID] }
+
+	for i := range meds {
+		if boxMatch[i] == nil || !isLine(meds[i]) {
+			continue
+		}
+		for _, box := range meds {
+			if isFreeBox(box) && box.Name == *boxMatch[i] {
+				link(i, box)
+				break
+			}
+		}
+	}
+	for i := range meds {
+		if _, ok := links[meds[i].ID]; ok || !isLine(meds[i]) || slices.Contains(meds[i].UncertainFields, "name") {
+			continue
+		}
+		words := strings.Fields(catalog.FamilyKey(meds[i].Name))
+		if len(words) == 0 {
+			continue
+		}
+		var fits []model.Medication
+		for _, box := range meds {
+			if isFreeBox(box) && hasPrefix(strings.Fields(catalog.FamilyKey(box.Name)), words) {
+				fits = append(fits, box)
+			}
+		}
+		if len(fits) == 1 {
+			link(i, fits[0])
+		}
+	}
+	return links
+}
+
+func hasPrefix(s, prefix []string) bool {
+	return len(s) >= len(prefix) && slices.Equal(s[:len(prefix)], prefix)
 }
 
 // firstError prefers a real failure over the context.Canceled that sibling

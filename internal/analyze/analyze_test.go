@@ -345,3 +345,73 @@ func mustJSON(v any) string {
 	b, _ := json.Marshal(v)
 	return string(b)
 }
+
+const boxUnknown = `{"medications":[
+	{"name":"Zzyxor 10 mg","active_substance":"zzyxorum","strength":"10 mg","form":null,"frequency":null,"amount":null,"note_style":null,"uncertain_fields":[],"box_match":null}],
+	"unreadable_items":0}`
+
+func noteLine(name, strength, boxMatch string, uncertain string) string {
+	bm := "null"
+	if boxMatch != "" {
+		bm = `"` + boxMatch + `"`
+	}
+	unc := "[]"
+	if uncertain != "" {
+		unc = `["` + uncertain + `"]`
+	}
+	return `{"medications":[{"name":"` + name + `","active_substance":null,"strength":"` + strength +
+		`","form":null,"frequency":"1-0-0","amount":null,"note_style":"handwritten","uncertain_fields":` + unc +
+		`,"box_match":` + bm + `}],"unreadable_items":0}`
+}
+
+// A note line the model links to a box joins it even when the box is not in
+// the catalogue; the box names reach the note call.
+func TestAnalyzeNoteLinkedToBox(t *testing.T) {
+	tests := []struct {
+		name, note string
+		items      int
+	}{
+		{"linked by model", noteLine("Zyxr", "20 mg", "Zzyxor 10 mg", "name"), 1},
+		{"same brand words", noteLine("Zzyxor", "10 mg", "", ""), 1},
+		{"brand words but uncertain", noteLine("Zzyxor", "10 mg", "", "name"), 2},
+		{"link to unknown box dropped", noteLine("Zyxr", "10 mg", "Other box", ""), 2},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var noteAsk atomic.Value
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				var body struct {
+					Messages []struct {
+						Content any `json:"content"`
+					} `json:"messages"`
+				}
+				json.NewDecoder(r.Body).Decode(&body)
+				if prompt, _ := body.Messages[0].Content.(string); strings.Contains(prompt, "krabičk") {
+					content(boxUnknown)(w)
+					return
+				}
+				user, _ := json.Marshal(body.Messages[1].Content)
+				noteAsk.Store(string(user))
+				content(tt.note)(w)
+			}))
+			t.Cleanup(srv.Close)
+
+			resp := decode(t, serve(realHandler(srv), form(t, note(jpeg), box(jpeg))))
+			if ask, _ := noteAsk.Load().(string); !strings.Contains(ask, "Zzyxor 10 mg") {
+				t.Errorf("note call did not list the box: %s", ask)
+			}
+			if len(resp.Medications) != tt.items {
+				t.Fatalf("got %d items, want %d: %s", len(resp.Medications), tt.items, mustJSON(resp))
+			}
+			if tt.items == 1 {
+				m := resp.Medications[0]
+				if m.Name != "Zzyxor 10 mg" || strings.Join(m.Sources, ",") != "box,note" || m.Frequency == nil {
+					t.Errorf("merged: %s", mustJSON(m))
+				}
+				if tt.name == "linked by model" && (len(m.Conflicts) != 1 || m.Conflicts[0].Field != "strength") {
+					t.Errorf("want a strength conflict only: %s", mustJSON(m))
+				}
+			}
+		})
+	}
+}

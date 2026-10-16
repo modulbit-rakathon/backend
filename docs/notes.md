@@ -110,3 +110,9 @@ Sheets split into a printed and a handwritten half (`scripts/split_samples.py`).
   - Baclofen, Veral retard and Novetron `matched`.
   - Unsure handwritten names have the correct product as the first candidate.
   - Interactions run straight off the output.
+
+## Invented drugs on a handwritten note (2026-10-16)
+- Report: a note plus six boxes (`../dataset/`) came back with about three drugs that were not there. Boxes were read correctly; the note lines were read as other, known drugs (Lagosa as Betaloc or Legalon, Kalium chloratum as Folic acid or Metformin, Keron as Ketonal), often without `uncertain_fields`, so they never merged with their boxes and showed up as extra items.
+- **Main cause: `AI_MODEL_A` was `gpt-6-luna-dz-eu` in `.env` and in App Service**, the model that fails on handwriting (table above). With `gpt-6-1-sol-dz-eu` the same note is read as written ("Famosa", "Keron", flagged uncertain), 3 of 3 runs. Cropping the photo to the paper did not help luna.
+- **Box hints:** notes are now read after the boxes, and the note call lists the box names read in the same request. The model fills `box_match` per line; analyze links that line to its box and `MergeLinked` joins them even when the box is not in the catalogue. The name stays as written, a differing strength is still a conflict. A line the model left unlinked joins a box when its brand words, read with certainty, start the box's ("Bisoprolol" and "Bisoprolol PMCS 10 mg") and only one free box fits.
+- Result on the dataset: 6 of 6 items, each merged from box and note, 3 of 3 runs, about 25 s per request (boxes, then the note). Eval on the notes alone with sol: handwritten 95 % found, 3 % silent, 12 extra; printed 100 %, 1 extra, so no regression from the schema change.

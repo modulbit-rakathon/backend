@@ -12,6 +12,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
+	"strings"
 	"time"
 )
 
@@ -36,6 +38,9 @@ type Item struct {
 	Amount          *string  `json:"amount"`
 	NoteStyle       *string  `json:"note_style"`
 	UncertainFields []string `json:"uncertain_fields"`
+	// BoxMatch is the box from the same request this note line refers to,
+	// exactly as listed to the model; nil when none or not a note.
+	BoxMatch *string `json:"box_match"`
 }
 
 type Result struct {
@@ -66,12 +71,22 @@ func New(baseURL, apiKey string) *Client {
 // Extract reads one image (JPEG or PNG bytes, mime e.g. "image/jpeg") for an
 // analyze source (box, note, regimen). It retries once on invalid JSON, 5xx
 // or timeout, and never more.
-func (c *Client) Extract(ctx context.Context, model, source, mime string, img []byte) (Result, error) {
+//
+// boxes are the box names already read in the same request. For a note they
+// are shown to the model, which links each note line to one of them in
+// BoxMatch while still transcribing the line as written.
+func (c *Client) Extract(ctx context.Context, model, source, mime string, img []byte, boxes []string) (Result, error) {
 	prompt, err := systemPrompt(source)
 	if err != nil {
 		return Result{}, err
 	}
-	body, err := json.Marshal(buildRequest(model, prompt, mime, c.Detail, img))
+	instruction := "Přepiš léky z této fotky podle pravidel."
+	if source == "note" && len(boxes) > 0 {
+		instruction += "\n\n" + boxesHint(boxes)
+	} else {
+		boxes = nil
+	}
+	body, err := json.Marshal(buildRequest(model, prompt, mime, c.Detail, instruction, img))
 	if err != nil {
 		return Result{}, err
 	}
@@ -88,7 +103,26 @@ func (c *Client) Extract(ctx context.Context, model, source, mime string, img []
 		}
 	}
 	res.PromptTokens, res.CompletionTokens = promptTotal, completionTotal
+	// A link to anything but a listed box is dropped, never guessed at.
+	for i, it := range res.Items {
+		if it.BoxMatch != nil && !slices.Contains(boxes, *it.BoxMatch) {
+			res.Items[i].BoxMatch = nil
+		}
+	}
 	return res, err
+}
+
+func boxesHint(boxes []string) string {
+	var b strings.Builder
+	b.WriteString("Pacient ve stejné chvíli vyfotil i tyto krabičky:\n")
+	for _, name := range boxes {
+		b.WriteString("- " + name + "\n")
+	}
+	b.WriteString("Lístek s nimi může a nemusí souviset. U každého řádku lístku vyplň \"box_match\" " +
+		"přesným textem krabičky z tohoto seznamu, pokud řádek podle písmen, síly a délky slova zjevně označuje stejný lék. " +
+		"Jinak je \"box_match\" null. Řádek nepřiřazuj jen proto, že krabička v seznamu je, a jednu krabičku nepřiřazuj dvěma řádkům. " +
+		"\"name\" i tak přepiš tak, jak je na lístku napsaný, včetně překlepů.")
+	return b.String()
 }
 
 func systemPrompt(source string) (string, error) {
@@ -195,7 +229,7 @@ func (r *Result) validate() error {
 	return nil
 }
 
-func buildRequest(model, prompt, mime, detail string, img []byte) map[string]any {
+func buildRequest(model, prompt, mime, detail, instruction string, img []byte) map[string]any {
 	image := map[string]any{"url": "data:" + mime + ";base64," + base64.StdEncoding.EncodeToString(img)}
 	if detail != "" {
 		image["detail"] = detail
@@ -205,7 +239,7 @@ func buildRequest(model, prompt, mime, detail string, img []byte) map[string]any
 		"messages": []any{
 			map[string]any{"role": "system", "content": prompt},
 			map[string]any{"role": "user", "content": []any{
-				map[string]any{"type": "text", "text": "Přepiš léky z této fotky podle pravidel."},
+				map[string]any{"type": "text", "text": instruction},
 				map[string]any{"type": "image_url", "image_url": image},
 			}},
 		},
@@ -234,7 +268,7 @@ const schema = `{
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["name", "active_substance", "strength", "form", "frequency", "amount", "note_style", "uncertain_fields"],
+        "required": ["name", "active_substance", "strength", "form", "frequency", "amount", "note_style", "uncertain_fields", "box_match"],
         "properties": {
           "name": {"type": "string"},
           "active_substance": {"type": ["string", "null"]},
@@ -246,7 +280,8 @@ const schema = `{
           "uncertain_fields": {
             "type": "array",
             "items": {"type": "string", "enum": ["name", "active_substance", "strength", "form", "frequency", "amount"]}
-          }
+          },
+          "box_match": {"type": ["string", "null"]}
         }
       }
     },

@@ -216,7 +216,7 @@ func runBoxes(c *ai.Client, model, dir string, n, par int) {
 			if err == nil {
 				start := time.Now()
 				var res ai.Result
-				res, err = c.Extract(context.Background(), model, "box", "image/jpeg", img)
+				res, err = c.Extract(context.Background(), model, "box", "image/jpeg", img, nil)
 				r.LatencyMS = time.Since(start).Milliseconds()
 				r.Items, r.Unreadable = res.Items, res.UnreadableItems
 			}
@@ -368,7 +368,7 @@ func run(c *ai.Client, j job, expected []gtItem) runResult {
 		return r
 	}
 	start := time.Now()
-	res, err := c.Extract(context.Background(), j.Model, "note", "image/jpeg", img)
+	res, err := c.Extract(context.Background(), j.Model, "note", "image/jpeg", img, nil)
 	r.LatencyMS = time.Since(start).Milliseconds()
 	r.Prompt, r.Tokens = res.PromptTokens, res.CompletionTokens
 	if err != nil {

@@ -17,6 +17,13 @@ import (
 // another). Within one source, the same brand at another strength stays a
 // separate item: a patient may take both.
 func (c *Catalog) Merge(items []model.Medication) []model.Medication {
+	return c.MergeLinked(items, nil)
+}
+
+// MergeLinked is Merge plus links from note item ids to box item ids: the
+// model read the note line as that box's drug. A linked note line joins its
+// box whether or not the box matched the catalogue.
+func (c *Catalog) MergeLinked(items []model.Medication, links map[string]string) []model.Medication {
 	type group struct {
 		members []model.Medication
 		family  string
@@ -28,7 +35,12 @@ func (c *Catalog) Merge(items []model.Medication) []model.Medication {
 	var out []any     // *group or model.Medication, in first-seen order
 	var pending []int // out positions of items that may still join a group
 
+	var linked []model.Medication
 	for _, it := range items {
+		if _, ok := links[it.ID]; ok {
+			linked = append(linked, it)
+			continue
+		}
 		p := c.matched(it)
 		if p == nil {
 			if len(it.Sources) == 0 {
@@ -77,6 +89,53 @@ func (c *Catalog) Merge(items []model.Medication) []model.Medication {
 			}
 		}
 	}
+
+	for _, note := range linked {
+		joined := false
+		for i, o := range out {
+			switch v := o.(type) {
+			case model.Medication:
+				if v.ID == links[note.ID] {
+					v.Sources = nil
+					out[i] = &group{members: []model.Medication{v, note}}
+					joined = true
+				}
+			case *group:
+				if slices.ContainsFunc(v.members, func(m model.Medication) bool { return m.ID == links[note.ID] }) {
+					v.members = append(v.members, note)
+					joined = true
+				}
+			}
+			if joined {
+				break
+			}
+		}
+		if !joined {
+			note.Sources = []string{note.Source}
+			out = append(out, note)
+		}
+	}
+
+	// Keep first-seen order: a linked note line moves its box's group up.
+	pos := map[string]int{}
+	for i, it := range items {
+		pos[it.ID] = i
+	}
+	first := func(o any) int {
+		switch v := o.(type) {
+		case model.Medication:
+			return pos[v.ID]
+		case *group:
+			n := len(items)
+			for _, m := range v.members {
+				n = min(n, pos[m.ID])
+			}
+			return n
+		}
+		return len(items)
+	}
+	out = slices.DeleteFunc(out, func(o any) bool { return o == nil })
+	slices.SortStableFunc(out, func(a, b any) int { return first(a) - first(b) })
 
 	merged := make([]model.Medication, 0, len(out))
 	for _, o := range out {
@@ -181,6 +240,11 @@ func (c *Catalog) join(ms []model.Medication) model.Medication {
 
 	// Different brands joined by substance: show both names.
 	conflict(&out, ms, "name", func(m model.Medication) (string, string) {
+		// No catalogue identity (a linked line and a box outside the
+		// catalogue): nothing to compare, the box print wins.
+		if m.Catalog == nil || (m.Catalog.Product == nil && len(m.Catalog.Candidates) == 0) {
+			return "", ""
+		}
 		if m.Catalog.Product == nil {
 			return m.Name, m.Catalog.Candidates[0].Name
 		}
