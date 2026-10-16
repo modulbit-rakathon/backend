@@ -84,7 +84,15 @@ func main() {
 	par := flag.Int("p", 4, "parallel model calls")
 	detail := flag.String("detail", "", "image detail: low, high, auto (empty = model default)")
 	rescore := flag.String("rescore", "", "re-score a saved data/eval/*.json without calling the model")
+	boxDir := flag.String("boxes", "", "dir of box photos: run source=box on every k-th photo and dump outputs (no ground truth)")
 	flag.Parse()
+
+	if *boxDir != "" {
+		client := ai.New(strings.TrimRight(os.Getenv("AI_BASE_URL"), "/"), os.Getenv("AI_API_KEY"))
+		client.Detail = *detail
+		runBoxes(client, strings.Split(*models, ",")[0], *boxDir, *limit, *par)
+		return
+	}
 
 	var gt map[string][]gtItem
 	var manifest map[string]string
@@ -154,6 +162,80 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println("details:", out)
+}
+
+type boxResult struct {
+	Photo      string    `json:"photo"`
+	Error      string    `json:"error,omitempty"`
+	LatencyMS  int64     `json:"latency_ms"`
+	Items      []ai.Item `json:"items"`
+	Unreadable int       `json:"unreadable_items"`
+}
+
+// runBoxes spreads n picks evenly over the sorted photos, so reruns hit the
+// same sample.
+func runBoxes(c *ai.Client, model, dir string, n, par int) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var all []string
+	for _, e := range entries {
+		if strings.HasSuffix(strings.ToLower(e.Name()), ".jpg") {
+			all = append(all, e.Name())
+		}
+	}
+	slices.Sort(all)
+	if n <= 0 || n > len(all) {
+		n = len(all)
+	}
+	picks := make([]string, n)
+	for i := range n {
+		picks[i] = all[i*len(all)/n]
+	}
+
+	results := make([]boxResult, n)
+	sem := make(chan struct{}, par)
+	var wg sync.WaitGroup
+	for i, name := range picks {
+		wg.Go(func() {
+			sem <- struct{}{}
+			defer func() { <-sem }()
+			r := boxResult{Photo: name}
+			img, err := os.ReadFile(filepath.Join(dir, name))
+			if err == nil {
+				start := time.Now()
+				var res ai.Result
+				res, err = c.Extract(context.Background(), model, "box", "image/jpeg", img)
+				r.LatencyMS = time.Since(start).Milliseconds()
+				r.Items, r.Unreadable = res.Items, res.UnreadableItems
+			}
+			if err != nil {
+				r.Error = err.Error()
+			}
+			results[i] = r
+		})
+	}
+	wg.Wait()
+
+	for _, r := range results {
+		fmt.Printf("== %s (%d ms) unreadable=%d %s\n", r.Photo, r.LatencyMS, r.Unreadable, r.Error)
+		for _, it := range r.Items {
+			fmt.Printf("   %q | as=%s | str=%s | form=%s | unc=%v\n", it.Name, deref(it.ActiveSubstance), deref(it.Strength), deref(it.Form), it.UncertainFields)
+		}
+	}
+	os.MkdirAll("data/eval", 0o755)
+	out := filepath.Join("data/eval", "boxes-"+time.Now().Format("20060102-150405")+".json")
+	b, _ := json.MarshalIndent(results, "", " ")
+	os.WriteFile(out, b, 0o644)
+	fmt.Println("details:", out)
+}
+
+func deref(s *string) string {
+	if s == nil {
+		return "null"
+	}
+	return fmt.Sprintf("%q", *s)
 }
 
 func mustJSON(path string, v any) {

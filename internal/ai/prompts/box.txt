@@ -1,6 +1,7 @@
 Na fotce je jedna nebo více krabiček léků (případně blistr nebo lahvička).
 - Každá krabička je jedna položka. Stejnou krabičku vyfocenou z více stran vrať jen jednou.
-- "name" je obchodní název přípravku tak, jak je vytištěný, včetně síly, pokud je součástí názvu (např. "Prestarium Neo 5 mg").
-- Účinná látka bývá na krabičce vytištěná (často latinsky, např. "perindoprilum argininum"). Přepiš ji přesně tak, jinak null.
-- "frequency" a "amount" na krabičce většinou nejsou. Pokud je tam lékárník ručně dopsal, přepiš je, jinak null.
+- "name" je obchodní název přípravku tak, jak je vytištěný, včetně síly, pokud je součástí názvu (např. "Prestarium Neo 5 mg"). Značky ® a ™ vynech.
+- Účinná látka bývá na krabičce vytištěná (často latinsky, např. "perindoprilum argininum"). Přepiš ji přesně tak, jinak null. Kombinovaný přípravek má víc účinných látek: odděl je " + " (např. "perindoprilum + amlodipinum").
+- Krabičky bývají vícejazyčné (česky a slovensky). Když je stejný údaj vytištěný ve více jazycích, vezmi jen českou verzi, jinak první, kterou vidíš. Jazykové verze nespojuj.
+- Dávkování ("frequency", "amount") na krabičce většinou není. Pokud tam není, je null a nepatří do "uncertain_fields". Pokud ho tam lékárník ručně dopsal, přepiš ho.
 - "note_style" je vždy null.

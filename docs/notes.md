@@ -54,3 +54,11 @@ Sheets split into a printed and a handwritten half (`scripts/split_samples.py`).
 - **Printed half with the final setup:** 100 % found, 100 % strengths, p50 10 s.
 - **Noise:** results vary between runs by a few items, so differences of ±2 % are noise.
 - **Cost of tuning:** 4 runs × 27 calls, about 410k prompt and 90k completion tokens.
+
+## Boxes (2026-10-16, 15 photos spread evenly over `Leky_foto`, `go run ./cmd/eval -boxes ../Data/Leky_foto -n 15 -detail high`)
+- **All 15 read correctly** (name, strength, active substance, form), 3–11 s per photo.
+- **Fixed in the prompt:**
+  - Bilingual CZ/SK packaging used to come back joined ("linagliptin/linagliptín"). Now only the Czech version comes back.
+  - ® and ™ are left out of the name.
+  - Combined active substances are separated with " + " ("perindoprilum erbuminum + amlodipinum + indapamidum"), so there is no clash with the "/" in strengths.
+- **Handwritten dosage on a box:** when one is there ("0-1" on Stadamet), the model transcribes it and flags `frequency` as uncertain. A name on a pharmacy sticker did not reach the output.
