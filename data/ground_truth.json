@@ -1,0 +1,2088 @@
+{
+ "1": [
+  {
+   "name": "AGEN",
+   "alternative": "Amlodipin Sandoz",
+   "strength": "5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "AERIUS",
+   "alternative": "Desloratadin Teva",
+   "strength": "5 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "MAGNESII LACTICI 0,5 TBL. MEDICAMENTA",
+   "alternative": null,
+   "strength": "0,5 g",
+   "frequency": "1-0-1"
+  }
+ ],
+ "2": [
+  {
+   "name": "EUTHYROX",
+   "alternative": null,
+   "strength": "50 mikrogramů",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "CALCICHEW D3 LEMON",
+   "alternative": null,
+   "strength": "500 mg / 400 IU",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "FAMOSAN",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "0-0-1"
+  }
+ ],
+ "3": [
+  {
+   "name": "BIOFENAC",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "MYDOCALM",
+   "alternative": "Tolperison",
+   "strength": "150 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "CONTROLOC",
+   "alternative": "Nolpaza",
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "4": [
+  {
+   "name": "PRENESSA",
+   "alternative": null,
+   "strength": "4 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "CODEIN SLOVAKOFARMA",
+   "alternative": null,
+   "strength": "15 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "ASCORUTIN",
+   "alternative": null,
+   "strength": "100 mg / 20 mg",
+   "frequency": "1-1-1"
+  }
+ ],
+ "5": [
+  {
+   "name": "PROSTAMOL UNO",
+   "alternative": null,
+   "strength": "320 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "TAMSULOSIN HCL SANDOZ",
+   "alternative": "Omnic Tocas",
+   "strength": "0,4 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "VIDEMEL",
+   "alternative": null,
+   "strength": "600 mg / 400 IU",
+   "frequency": "0-0-1"
+  }
+ ],
+ "6": [
+  {
+   "name": "DEVENAL",
+   "alternative": null,
+   "strength": "500 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "ESPUMISAN",
+   "alternative": null,
+   "strength": "40 mg",
+   "frequency": "2-2-2"
+  },
+  {
+   "name": "REPARIL DRAGÉES",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "2-2-2"
+  }
+ ],
+ "7": [
+  {
+   "name": "LOKREN",
+   "alternative": "Betaxolol Teva",
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ROSUCARD",
+   "alternative": "Sorvasta",
+   "strength": "10 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "ANOPYRIN",
+   "alternative": "Stacyl",
+   "strength": "100 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "HELICID 20 ZENTIVA",
+   "alternative": "Omeprazol",
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "8": [
+  {
+   "name": "SKUDEXA",
+   "alternative": null,
+   "strength": "75 mg / 25 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "MYDOCALM",
+   "alternative": null,
+   "strength": "150 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "PANTOMYL",
+   "alternative": null,
+   "strength": "40 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "DIAZEPAM STADA",
+   "alternative": "Apaurin",
+   "strength": "5 mg",
+   "frequency": "0-0-1"
+  }
+ ],
+ "9": [
+  {
+   "name": "KEPPRA",
+   "alternative": null,
+   "strength": "500 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "TIMONIL RETARD",
+   "alternative": null,
+   "strength": "300 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "BECALEN",
+   "alternative": null,
+   "strength": "1,5 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "MAGNESII LACTICI 0,5 TBL. MEDICAMENTA",
+   "alternative": null,
+   "strength": "0,5 g",
+   "frequency": "1-0-1"
+  }
+ ],
+ "10": [
+  {
+   "name": "ETRUZIL",
+   "alternative": null,
+   "strength": "2,5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "CALCICHEW D3 LEMON",
+   "alternative": null,
+   "strength": "500 mg / 400 IU",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "VIDEMEL",
+   "alternative": null,
+   "strength": "600 mg / 400 IU",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "PROBIOLACT",
+   "alternative": null,
+   "strength": "10 mld. probiotik + vit. C",
+   "frequency": "1-0-0"
+  }
+ ],
+ "11": [
+  {
+   "name": "SIOFOR",
+   "alternative": "Glucophage",
+   "strength": "500 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "PREGABALIN ACCORD",
+   "alternative": "Lyrica",
+   "strength": "75 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "DHC CONTINUS",
+   "alternative": null,
+   "strength": "60 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "CONTROLOC",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "12": [
+  {
+   "name": "LAMICTAL",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "CITALEC",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ZOPITIN",
+   "alternative": null,
+   "strength": "7,5 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "PYRIDOXIN GENERICA",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "13": [
+  {
+   "name": "BISOPROLOL PMCS",
+   "alternative": "Concor",
+   "strength": "5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ADENURIC",
+   "alternative": "Febuxostat",
+   "strength": "80 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "HYDROCHLOROTHIAZID LÉČIVA",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ZOLPIDEM VIATRIS",
+   "alternative": "Hypnogen",
+   "strength": "10 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "KALIUM CHLORATUM BIOMEDICA",
+   "alternative": null,
+   "strength": "500 mg",
+   "frequency": "1-0-1"
+  }
+ ],
+ "14": [
+  {
+   "name": "PENTASA",
+   "alternative": null,
+   "strength": "1 g",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "SORBIFER DURULES",
+   "alternative": null,
+   "strength": "320 mg / 60 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "PREDNISONE OLIKLA",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "HELICID 20 ZENTIVA",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PROBIOLACT",
+   "alternative": null,
+   "strength": "10 mld. probiotik + vit. C",
+   "frequency": "1-0-1"
+  }
+ ],
+ "15": [
+  {
+   "name": "MONTELUKAST TEVA",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "AERIUS",
+   "alternative": null,
+   "strength": "5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "EUPHYLLIN CR N 200",
+   "alternative": null,
+   "strength": "200 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "TENAXUM",
+   "alternative": null,
+   "strength": "1 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ERDOMED",
+   "alternative": null,
+   "strength": "300 mg",
+   "frequency": "1-0-1"
+  }
+ ],
+ "16": [
+  {
+   "name": "PALGOTAL",
+   "alternative": "Zaldiar",
+   "strength": "75 mg / 650 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "RECOXA",
+   "alternative": null,
+   "strength": "15 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PANTOMYL",
+   "alternative": "Controloc",
+   "strength": "40 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "BACLOFEN POLPHARMA",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "MAGNESII LACTICI 0,5 TBL. MEDICAMENTA",
+   "alternative": null,
+   "strength": "0,5 g",
+   "frequency": "1-0-1"
+  }
+ ],
+ "17": [
+  {
+   "name": "ELIQUIS",
+   "alternative": null,
+   "strength": "5 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "EGILOK",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "DIGOXIN LÉČIVA",
+   "alternative": null,
+   "strength": "0,125 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "RAMIPRIL H ACTAVIS",
+   "alternative": null,
+   "strength": "2,5 mg / 12,5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ATENOLOL AL 50",
+   "alternative": null,
+   "strength": "50 mg",
+   "frequency": "0-1-0"
+  }
+ ],
+ "18": [
+  {
+   "name": "REMOOD",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "GAPULSID",
+   "alternative": null,
+   "strength": "1 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "ITOPRID PMCS",
+   "alternative": null,
+   "strength": "50 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "ESPUMISAN",
+   "alternative": null,
+   "strength": "40 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "TRITTICO AC",
+   "alternative": null,
+   "strength": "75 mg",
+   "frequency": "0-0-1"
+  }
+ ],
+ "19": [
+  {
+   "name": "TROMBEX",
+   "alternative": null,
+   "strength": "75 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ANOPYRIN",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "BETALOC ZOK",
+   "alternative": null,
+   "strength": "50 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "TORVACARD NEO",
+   "alternative": "Atoris",
+   "strength": "20 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "TRITACE",
+   "alternative": "Piramil",
+   "strength": "5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "HELICID 20 ZENTIVA",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "20": [
+  {
+   "name": "SIOFOR PROLONG",
+   "alternative": null,
+   "strength": "750 mg",
+   "frequency": "0-0-2"
+  },
+  {
+   "name": "JARDIANCE",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "GLIMEPIRID SANDOZ",
+   "alternative": null,
+   "strength": "2 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "TEZEO",
+   "alternative": null,
+   "strength": "80 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "SORVASTA",
+   "alternative": null,
+   "strength": "15 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "HYDROCHLOROTHIAZID LÉČIVA",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "21": [
+  {
+   "name": "FENTALIS",
+   "alternative": "Durogesic",
+   "strength": "25 µg/h",
+   "frequency": "1 náplast po 72 hodinách"
+  },
+  {
+   "name": "SEVREDOL",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "MOVENTIG",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "TORECAN",
+   "alternative": null,
+   "strength": "6,5 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "CONTROLOC",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "MAGNESII LACTICI",
+   "alternative": null,
+   "strength": "0,5 g",
+   "frequency": "0-0-1"
+  }
+ ],
+ "22": [
+  {
+   "name": "AKINETON",
+   "alternative": null,
+   "strength": "2 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "NEBILET",
+   "alternative": null,
+   "strength": "5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "CAVINTON FORTE",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "BACLOFEN POLPHARMA",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "CERUCAL",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "DITHIADEN",
+   "alternative": null,
+   "strength": "2 mg",
+   "frequency": "0-0-1"
+  }
+ ],
+ "23": [
+  {
+   "name": "TREXAN NEO",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "1× týdně"
+  },
+  {
+   "name": "ACIDUM FOLICUM LÉČIVA",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "MEDROL",
+   "alternative": null,
+   "strength": "4 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PANTOMYL",
+   "alternative": null,
+   "strength": "40 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PRENESSA",
+   "alternative": null,
+   "strength": "8 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "CALCICHEW D3 LEMON",
+   "alternative": null,
+   "strength": "500 mg / 400 IU",
+   "frequency": "0-0-1"
+  }
+ ],
+ "24": [
+  {
+   "name": "LAGOSA",
+   "alternative": null,
+   "strength": "obalené tablety",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "URSOSAN FORTE",
+   "alternative": null,
+   "strength": "500 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "SPASMED 15",
+   "alternative": null,
+   "strength": "15 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "FURORESE 40",
+   "alternative": null,
+   "strength": "40 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "KALNORMIN",
+   "alternative": null,
+   "strength": "1 g",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "FAMOSAN",
+   "alternative": null,
+   "strength": "40 mg",
+   "frequency": "0-0-1"
+  }
+ ],
+ "25": [
+  {
+   "name": "PLAQUENIL",
+   "alternative": null,
+   "strength": "200 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "PREDNISONE OLIKLA",
+   "alternative": null,
+   "strength": "5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ACLEXA",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "HELICID 20 ZENTIVA",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "AMPRILAN H",
+   "alternative": null,
+   "strength": "5 mg / 25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "CALCICHEW D3 LEMON",
+   "alternative": null,
+   "strength": "500 mg / 400 IU",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "PROBIOLACT",
+   "alternative": null,
+   "strength": "10 mld. probiotik + vit. C",
+   "frequency": "1-0-0"
+  }
+ ],
+ "26": [
+  {
+   "name": "FENTALIS",
+   "alternative": null,
+   "strength": "75 µg/h",
+   "frequency": "1 náplast po 72 hodinách"
+  },
+  {
+   "name": "EFFENTORA",
+   "alternative": null,
+   "strength": "100 µg",
+   "frequency": "1 bukální tableta při atace bolesti"
+  },
+  {
+   "name": "MOVENTIG",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "TORECAN",
+   "alternative": null,
+   "strength": "6,5 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "MEGAPLEX",
+   "alternative": null,
+   "strength": "160 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "DEVENAL",
+   "alternative": null,
+   "strength": "500 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "CONTROLOC",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "27": [
+  {
+   "name": "ENTRESTO",
+   "alternative": null,
+   "strength": "49 mg / 51 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "BETALOC ZOK",
+   "alternative": "Egilok 100",
+   "strength": "100 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "VEROSPIRON",
+   "alternative": "Spironolacton",
+   "strength": "25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "FURORESE 40",
+   "alternative": null,
+   "strength": "40 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "WARFARIN ORION",
+   "alternative": null,
+   "strength": "5 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "KALNORMIN",
+   "alternative": null,
+   "strength": "1 g",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "CARDILAN",
+   "alternative": null,
+   "strength": "175 mg / 175 mg",
+   "frequency": "1-1-1"
+  }
+ ],
+ "28": [
+  {
+   "name": "OLWEXYA",
+   "alternative": null,
+   "strength": "150 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PREGABALIN ACCORD",
+   "alternative": null,
+   "strength": "150 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "KVENTIAX",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "OXAZEPAM LÉČIVA",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "PROTHAZIN",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "MAGRILAN",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PYRIDOXIN GENERICA",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "29": [
+  {
+   "name": "LIPERTANCE",
+   "alternative": null,
+   "strength": "20 mg / 10 mg / 5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PREDUCTAL MR",
+   "alternative": null,
+   "strength": "35 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "MONOSAN",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "ANOPYRIN",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "LORADUR MITE",
+   "alternative": null,
+   "strength": "2,5 mg / 25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PURINOL",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "HELICID 20 ZENTIVA",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "30": [
+  {
+   "name": "EXEMESTAN MYLAN",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "TRAMAL RETARD",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "TRALGIT",
+   "alternative": null,
+   "strength": "50 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "TORECAN",
+   "alternative": null,
+   "strength": "6,5 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "CALCICHEW D3 LEMON",
+   "alternative": null,
+   "strength": "500 mg / 400 IU",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "HELICID 20 ZENTIVA",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ZOPITIN",
+   "alternative": null,
+   "strength": "7,5 mg",
+   "frequency": "0-0-1"
+  }
+ ],
+ "31": [
+  {
+   "name": "TONANDA",
+   "alternative": null,
+   "strength": "8 mg / 10 mg / 2,5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "SIOFOR",
+   "alternative": null,
+   "strength": "850 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "ZETOVAR",
+   "alternative": null,
+   "strength": "10 mg / 40 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "MILURIT",
+   "alternative": null,
+   "strength": "200 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ANOPYRIN",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "LUSOPRESS",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "LIPANTHYL S",
+   "alternative": null,
+   "strength": "215 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "CONTROLOC",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "32": [
+  {
+   "name": "PALEXIA RETARD",
+   "alternative": null,
+   "strength": "200 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "PALEXIA",
+   "alternative": null,
+   "strength": "50 mg",
+   "frequency": "1 tableta při akutní bolesti"
+  },
+  {
+   "name": "NEURONTIN",
+   "alternative": "Gabapentin",
+   "strength": "300 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "BACLOFEN POLPHARMA",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "VERAL RETARD",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "PANTOMYL",
+   "alternative": null,
+   "strength": "40 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "TRITTICO AC",
+   "alternative": null,
+   "strength": "75 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "ESPUMISAN",
+   "alternative": null,
+   "strength": "40 mg",
+   "frequency": "1-1-1"
+  }
+ ],
+ "33": [
+  {
+   "name": "CORDARONE",
+   "alternative": null,
+   "strength": "200 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "SOTAHEXAL 80",
+   "alternative": null,
+   "strength": "80 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "CARZAP HCT",
+   "alternative": null,
+   "strength": "16 mg / 12,5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ROZETIN",
+   "alternative": null,
+   "strength": "40 mg / 10 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "VESSEL DUE F",
+   "alternative": null,
+   "strength": "250 LSU",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "CARDILAN",
+   "alternative": null,
+   "strength": "175 mg / 175 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "DIGOXIN LÉČIVA",
+   "alternative": null,
+   "strength": "0,125 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "CONTROLOC",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "34": [
+  {
+   "name": "TONARSSA",
+   "alternative": null,
+   "strength": "4 mg / 10 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "DUODART",
+   "alternative": null,
+   "strength": "0,5 mg / 0,4 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "VESICARE",
+   "alternative": null,
+   "strength": "5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ZOXON 4",
+   "alternative": null,
+   "strength": "4 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "SOTAHEXAL 80",
+   "alternative": null,
+   "strength": "80 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "TORVACARD NEO",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "ZOLPIDEM VIATRIS",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "ASCORUTIN",
+   "alternative": null,
+   "strength": "100 mg / 20 mg",
+   "frequency": "1-1-1"
+  }
+ ],
+ "35": [
+  {
+   "name": "SALAZOPYRIN EN",
+   "alternative": null,
+   "strength": "500 mg",
+   "frequency": "2-2-2"
+  },
+  {
+   "name": "PREDNISONE OLIKLA",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "MYFENAX",
+   "alternative": null,
+   "strength": "500 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "MALTOFER",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "HELICID 20 ZENTIVA",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "LOPACUT",
+   "alternative": null,
+   "strength": "2 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PROBIOLACT",
+   "alternative": null,
+   "strength": "10 mld. probiotik + vit. C",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "CALCICHEW D3 LEMON",
+   "alternative": null,
+   "strength": "500 mg / 400 IU",
+   "frequency": "0-0-1"
+  }
+ ],
+ "36": [
+  {
+   "name": "TISERCIN",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "KETILEPT",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "OLANZAPIN ACTAVIS",
+   "alternative": null,
+   "strength": "5 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "RISPERIDON VIPHARM",
+   "alternative": null,
+   "strength": "2 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "AKINETON",
+   "alternative": null,
+   "strength": "2 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "BURONIL",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "PRENESSA",
+   "alternative": null,
+   "strength": "4 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "MAGNESII LACTICI 0,5 TBL. MEDICAMENTA",
+   "alternative": null,
+   "strength": "0,5 g",
+   "frequency": "1-0-1"
+  }
+ ],
+ "37": [
+  {
+   "name": "STADAMET",
+   "alternative": null,
+   "strength": "1000 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "JANUVIA",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ENYGLID",
+   "alternative": null,
+   "strength": "2 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "TRIPLIXAM",
+   "alternative": null,
+   "strength": "5 mg / 1,25 mg / 5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "SORVASTA PLUS",
+   "alternative": null,
+   "strength": "10 mg / 10 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "ANOPYRIN",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "VESSEL DUE F",
+   "alternative": null,
+   "strength": "250 LSU",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "NEURONTIN",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "CONTROLOC",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "38": [
+  {
+   "name": "OXYCOMP",
+   "alternative": null,
+   "strength": "40 mg / 20 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "SEVREDOL",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1 tableta při bolesti"
+  },
+  {
+   "name": "TORECAN",
+   "alternative": null,
+   "strength": "6,5 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "MOVENTIG",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PREDNISONE OLIKLA",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "MEGAPLEX",
+   "alternative": null,
+   "strength": "160 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "CONTROLOC",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "DITHIADEN",
+   "alternative": null,
+   "strength": "2 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "CALCICHEW D3 LEMON",
+   "alternative": null,
+   "strength": "500 mg / 400 IU",
+   "frequency": "0-0-1"
+  }
+ ],
+ "39": [
+  {
+   "name": "ENTRESTO",
+   "alternative": null,
+   "strength": "24 mg / 26 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "FURORESE 125",
+   "alternative": null,
+   "strength": "125 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "EPLERENON SANDOZ",
+   "alternative": null,
+   "strength": "50 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "BETALOC ZOK",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "WARFARIN ORION",
+   "alternative": null,
+   "strength": "5 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "KALNORMIN",
+   "alternative": null,
+   "strength": "1 g",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "PURINOL",
+   "alternative": null,
+   "strength": "300 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "DIGOXIN LÉČIVA",
+   "alternative": null,
+   "strength": "0,125 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "HELICID 20 ZENTIVA",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "40": [
+  {
+   "name": "VENDAL RETARD",
+   "alternative": null,
+   "strength": "30 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "APREPITANT SANDOZ",
+   "alternative": null,
+   "strength": "125 mg + 80 mg",
+   "frequency": null
+  },
+  {
+   "name": "NOVETRON",
+   "alternative": null,
+   "strength": "8 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "EFFENTORA",
+   "alternative": null,
+   "strength": "100 µg",
+   "frequency": "1 bukální tableta při atace bolesti"
+  },
+  {
+   "name": "MOVENTIG",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "DEVENAL",
+   "alternative": null,
+   "strength": "500 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "PANTOMYL",
+   "alternative": null,
+   "strength": "40 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PROBIOLACT",
+   "alternative": null,
+   "strength": "10 mld. probiotik + vit. C",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "ZOPITIN",
+   "alternative": null,
+   "strength": "7,5 mg",
+   "frequency": "0-0-1"
+  }
+ ],
+ "41": [
+  {
+   "name": "TROMBEX",
+   "alternative": null,
+   "strength": "75 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PIRAMIL",
+   "alternative": null,
+   "strength": "5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "MARIXINO",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "CAVINTON FORTE",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "BACLOFEN POLPHARMA",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "TRALGIT",
+   "alternative": null,
+   "strength": "50 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "TORVACARD NEO",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "PREDUCTAL MR",
+   "alternative": null,
+   "strength": "35 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "CONTROLOC",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "42": [
+  {
+   "name": "TEZEFORT",
+   "alternative": null,
+   "strength": "80 mg / 10 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "INDAP",
+   "alternative": null,
+   "strength": "2,5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ROSUCARD",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "PURINOL",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "CALCICHEW D3 LEMON",
+   "alternative": null,
+   "strength": "500 mg / 400 IU",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "VIDEMEL",
+   "alternative": null,
+   "strength": "600 mg / 400 IU",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "KODEIN FMK",
+   "alternative": null,
+   "strength": "30 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PROSTAMOL UNO",
+   "alternative": null,
+   "strength": "320 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "HELICID 20 ZENTIVA",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "43": [
+  {
+   "name": "OXYCOMP",
+   "alternative": null,
+   "strength": "20 mg / 10 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "PREGABALIN ACCORD",
+   "alternative": null,
+   "strength": "150 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "VELAXIN",
+   "alternative": null,
+   "strength": "75 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "MIRTAZAPIN SANDOZ",
+   "alternative": null,
+   "strength": "45 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "TENAXUM",
+   "alternative": null,
+   "strength": "1 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ZELIFTAN",
+   "alternative": null,
+   "strength": "6 mg / 0,4 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PANTOMYL",
+   "alternative": null,
+   "strength": "40 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "MOVENTIG",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PYRIDOXIN GENERICA",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "44": [
+  {
+   "name": "SIOFOR PROLONG",
+   "alternative": "Glucophage XR",
+   "strength": "750 mg",
+   "frequency": "0-0-2"
+  },
+  {
+   "name": "XIGDUO",
+   "alternative": null,
+   "strength": "5 mg / 1 000 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "JUZINA",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "COSYREL",
+   "alternative": null,
+   "strength": "10 mg / 10 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ZETOVAR",
+   "alternative": null,
+   "strength": "10 mg / 80 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "ANOPYRIN",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "FURORESE 40",
+   "alternative": "Furosemid",
+   "strength": "40 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PURINOL",
+   "alternative": "Milurit",
+   "strength": "100 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "VESSEL DUE F",
+   "alternative": null,
+   "strength": "250 LSU",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "CONTROLOC",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "45": [
+  {
+   "name": "FENTALIS",
+   "alternative": null,
+   "strength": "12,5 µg/h",
+   "frequency": "1 náplast po 72 hodinách"
+  },
+  {
+   "name": "OXYCOMP",
+   "alternative": null,
+   "strength": "10 mg / 5 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "SEVREDOL",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1 tableta při atace bolesti"
+  },
+  {
+   "name": "MEDROL",
+   "alternative": null,
+   "strength": "16 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "TORECAN",
+   "alternative": null,
+   "strength": "6,5 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "MOVENTIG",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PANTOMYL",
+   "alternative": null,
+   "strength": "40 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ASENTRA",
+   "alternative": null,
+   "strength": "50 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "CALCICHEW D3 LEMON",
+   "alternative": null,
+   "strength": "500 mg / 400 IU",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "DITHIADEN",
+   "alternative": null,
+   "strength": "2 mg",
+   "frequency": "0-0-1"
+  }
+ ],
+ "46": [
+  {
+   "name": "TREXAN NEO",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "1× týdně"
+  },
+  {
+   "name": "ACIDUM FOLICUM LÉČIVA",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "DICLOFENAC DUO PHARMASWISS",
+   "alternative": null,
+   "strength": "75 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "ZALDIAR",
+   "alternative": null,
+   "strength": "37,5 mg / 325 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "HELICID 20 ZENTIVA",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "LORISTA H",
+   "alternative": null,
+   "strength": "100 mg / 12,5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ROSUCARD",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "CALCICHEW D3 LEMON",
+   "alternative": null,
+   "strength": "500 mg / 400 IU",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "MYDOCALM",
+   "alternative": null,
+   "strength": "150 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "TRITTICO AC",
+   "alternative": null,
+   "strength": "75 mg",
+   "frequency": "0-0-1"
+  }
+ ],
+ "47": [
+  {
+   "name": "XARELTO",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "EUPHYLLIN CR N 100",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "ERDOMED",
+   "alternative": null,
+   "strength": "300 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "PRENEWEL",
+   "alternative": null,
+   "strength": "4 mg / 1,25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "CONCOR COMBI",
+   "alternative": null,
+   "strength": "5 mg / 10 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "FURORESE 40",
+   "alternative": null,
+   "strength": "40 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "VEROSPIRON",
+   "alternative": null,
+   "strength": "50 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "KALNORMIN",
+   "alternative": null,
+   "strength": "1 g",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "CONTROLOC",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "DEVENAL",
+   "alternative": null,
+   "strength": "500 mg",
+   "frequency": "1-0-1"
+  }
+ ],
+ "48": [
+  {
+   "name": "TRAMAL RETARD",
+   "alternative": null,
+   "strength": "150 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "TRAMAL",
+   "alternative": null,
+   "strength": "50 mg",
+   "frequency": "1 tobolka při akutní bolesti"
+  },
+  {
+   "name": "NEURONTIN",
+   "alternative": null,
+   "strength": "300 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "BACLOFEN POLPHARMA",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "VELAXIN",
+   "alternative": null,
+   "strength": "50 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "TIAPRIDAL",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "CONTROLOC",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "MOVENTIG",
+   "alternative": null,
+   "strength": "25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "DIAZEPAM STADA",
+   "alternative": null,
+   "strength": "10 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "ESPUMISAN",
+   "alternative": null,
+   "strength": "40 mg",
+   "frequency": "1-1-1"
+  }
+ ],
+ "49": [
+  {
+   "name": "ZAXORAN",
+   "alternative": null,
+   "strength": "50 mg / 1000 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "TRAJENTA",
+   "alternative": null,
+   "strength": "5 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "VATINID",
+   "alternative": null,
+   "strength": "2 mg",
+   "frequency": "1-1-1"
+  },
+  {
+   "name": "VALSACOMBI",
+   "alternative": null,
+   "strength": "160 mg / 25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "AMESOS",
+   "alternative": null,
+   "strength": "10 mg / 5 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "PURINOL",
+   "alternative": null,
+   "strength": "300 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "TORVACARD NEO",
+   "alternative": null,
+   "strength": "20 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "ANOPYRIN",
+   "alternative": null,
+   "strength": "100 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "PANTOMYL",
+   "alternative": null,
+   "strength": "40 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "KALIUM CHLORATUM BIOMEDICA",
+   "alternative": null,
+   "strength": "500 mg",
+   "frequency": "1-0-0"
+  }
+ ],
+ "50": [
+  {
+   "name": "VALTRICOM",
+   "alternative": null,
+   "strength": "10 mg / 160 mg / 25 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "STADAMET",
+   "alternative": null,
+   "strength": "1000 mg",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "ZETOVAR",
+   "alternative": null,
+   "strength": "10 mg / 40 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "ZELIFTAN",
+   "alternative": null,
+   "strength": "6 mg / 0,4 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "ZEVESIN",
+   "alternative": "Vesicare",
+   "strength": "5 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "VESSEL DUE F",
+   "alternative": null,
+   "strength": "250 LSU",
+   "frequency": "1-0-1"
+  },
+  {
+   "name": "WARFARIN ORION",
+   "alternative": null,
+   "strength": "5 mg",
+   "frequency": "0-0-1"
+  },
+  {
+   "name": "PURINOL",
+   "alternative": "Milurit",
+   "strength": "100 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "CONTROLOC",
+   "alternative": "Nolpaza",
+   "strength": "20 mg",
+   "frequency": "1-0-0"
+  },
+  {
+   "name": "VIDEMEL",
+   "alternative": "Caltrate 600/400 D3",
+   "strength": "600 mg / 400 IU",
+   "frequency": "0-0-1"
+  }
+ ]
+}

@@ -4,3 +4,5 @@
 *.exe
 *.test
 *.out
+/data/samples/
+/data/eval/
