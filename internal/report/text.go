@@ -7,6 +7,8 @@ type texts struct {
 	ColMed, ColSubstance, ColStrength, ColDosage, ColSource     string
 	Regimen, ByAbbr, Variants, RegimenUnknown                   string
 	SourceBox, SourceNote, SourceManual                         string
+	EditedBy                                                    string
+	Fields                                                      map[string]string
 	Interactions, None, Duplicate, UncheckedTag                 string
 	Levels                                                      map[string]string
 	Reasons                                                     map[string]string
@@ -30,6 +32,8 @@ var langs = map[string]texts{
 		SourceBox:      "krabička",
 		SourceNote:     "lístek",
 		SourceManual:   "ručně",
+		EditedBy:       "opravil lékař: %s",
+		Fields:         map[string]string{"name": "název", "strength": "síla", "dosage": "dávkování"},
 		Interactions:   "Interakce (%d)",
 		None:           "Interakce nenalezeny v databázi %s. To neznamená, že žádné nejsou.",
 		Duplicate:      "Dva přípravky se stejnou účinnou látkou (%s).",
@@ -70,6 +74,8 @@ var langs = map[string]texts{
 		SourceBox:      "box",
 		SourceNote:     "note",
 		SourceManual:   "manual",
+		EditedBy:       "corrected by doctor: %s",
+		Fields:         map[string]string{"name": "name", "strength": "strength", "dosage": "dosage"},
 		Interactions:   "Interactions (%d)",
 		None:           "No interactions found in the %s database. This does not mean there are none.",
 		Duplicate:      "Two products with the same active ingredient (%s).",
@@ -110,6 +116,8 @@ var langs = map[string]texts{
 		SourceBox:      "упаковка",
 		SourceNote:     "призначення",
 		SourceManual:   "вручну",
+		EditedBy:       "виправив лікар: %s",
+		Fields:         map[string]string{"name": "назва", "strength": "сила", "dosage": "дозування"},
 		Interactions:   "Взаємодії (%d)",
 		None:           "У базі %s взаємодій не знайдено. Це не означає, що їх немає.",
 		Duplicate:      "Два препарати з однаковою діючою речовиною (%s).",

@@ -64,6 +64,9 @@ type SharedMedication struct {
 	Source          string   `json:"source"`
 	Sources         []string `json:"sources,omitempty"`
 	NoteStyle       *string  `json:"note_style,omitempty"`
+	// EditedFields lists what the doctor corrected in /doc before the report
+	// (name, strength, dosage). Only the PDF report reads it.
+	EditedFields []string `json:"edited_fields,omitempty"`
 }
 
 // CatalogMatch links a read item to the organisers' catalogue.

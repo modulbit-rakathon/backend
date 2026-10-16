@@ -135,6 +135,7 @@ var (
 	kinds      = map[string]bool{model.KindDrug: true, model.KindRegimen: true}
 	sources    = map[string]bool{model.SourceNote: true, model.SourceBox: true, model.SourceManual: true}
 	noteStyles = map[string]bool{model.NoteStylePrinted: true, model.NoteStyleHandwritten: true}
+	editable   = map[string]bool{"name": true, "strength": true, "dosage": true}
 )
 
 // Validate checks one shared medication against the contract (docs/api.md, section 2).
@@ -158,6 +159,14 @@ func Validate(m model.SharedMedication) error {
 	}
 	if m.NoteStyle != nil && !noteStyles[*m.NoteStyle] {
 		return errors.New("unknown note_style")
+	}
+	for _, f := range m.EditedFields {
+		if !editable[f] {
+			return errors.New("unknown value in edited_fields")
+		}
+	}
+	if len(m.EditedFields) > len(editable) {
+		return errors.New("too many edited_fields")
 	}
 	for _, s := range []*string{&m.ID, &m.Name, m.ActiveSubstance, m.Strength, m.Form, m.Frequency, m.Amount} {
 		if s != nil && utf8.RuneCountInString(*s) > MaxStringLen {

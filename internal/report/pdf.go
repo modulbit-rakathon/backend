@@ -338,5 +338,13 @@ func sourcesText(m model.SharedMedication, t texts) string {
 	for i, s := range list {
 		out[i] = names[s]
 	}
-	return strings.Join(out, " + ")
+	text := strings.Join(out, " + ")
+	if len(m.EditedFields) > 0 {
+		fields := make([]string, len(m.EditedFields))
+		for i, f := range m.EditedFields {
+			fields[i] = t.Fields[f]
+		}
+		text += ", " + fmt.Sprintf(t.EditedBy, strings.Join(fields, ", "))
+	}
+	return text
 }

@@ -151,6 +151,7 @@ Zpráva pro lékaře jako PDF: tabulka léků, interakce a co se zkontrolovat ne
 Request: `{ "medications": [ /* Medication[] z claim */ ], "lang": "cs" }`
 - `medications`: stejný tvar a validace jako `POST /api/share` (max 50, `id` unikátní, neznámé pole `400`).
 - `lang`: `cs` | `en` | `uk`, výchozí `cs`. Jazyk textů ve zprávě, ne léků.
+- `edited_fields` (volitelné u položky): co lékař v `/doc` opravil, `name` | `strength` | `dosage`. Zpráva to připíše do sloupce Zdroj („krabička, opravil lékař: síla“), ať se původní zdroj nevydává za autora opravy. Jiná hodnota → `400`.
 
 Response `200`: `application/pdf`, hlavička `Content-Disposition: attachment; filename="pillgaze-leky-2026-10-16-2130.pdf"` (čas v Europe/Prague, přes CORS čitelná), `Cache-Control: no-store`.
 

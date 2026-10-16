@@ -224,6 +224,8 @@ func TestShareValidation(t *testing.T) {
 		{"bad source", bad(func(m *model.SharedMedication) { m.Source = "regimen" }), 400},
 		{"bad sources", bad(func(m *model.SharedMedication) { m.Sources = []string{"box", "web"} }), 400},
 		{"bad note_style", bad(func(m *model.SharedMedication) { s := "typed"; m.NoteStyle = &s }), 400},
+		{"edited_fields", bad(func(m *model.SharedMedication) { m.EditedFields = []string{"strength", "dosage"} }), 201},
+		{"bad edited_fields", bad(func(m *model.SharedMedication) { m.EditedFields = []string{"source"} }), 400},
 		{"long string", bad(func(m *model.SharedMedication) { m.Strength = &long }), 400},
 		{"long name", bad(func(m *model.SharedMedication) { m.Name = long }), 400},
 		{"missing name", bad(func(m *model.SharedMedication) { m.Name = "" }), 400},

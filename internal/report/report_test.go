@@ -33,7 +33,7 @@ func newHandler(t *testing.T) *Handler {
 
 func testMeds() []model.SharedMedication {
 	return append(fixtures.Shared(),
-		model.SharedMedication{ID: "med_x1", Kind: model.KindDrug, Name: "Ibalgin 400", ActiveSubstance: s("ibuprofenum"), Source: model.SourceBox},
+		model.SharedMedication{ID: "med_x1", Kind: model.KindDrug, Name: "Ibalgin 400", ActiveSubstance: s("ibuprofenum"), Strength: s("400 mg"), Source: model.SourceBox, EditedFields: []string{"strength", "dosage"}},
 		model.SharedMedication{ID: "med_x2", Kind: model.KindRegimen, Name: "FOLFOXX", Source: model.SourceNote},
 		model.SharedMedication{ID: "med_x3", Kind: model.KindDrug, Name: "Neznámý lék 😀 s velmi dlouhým názvem, který se musí zalomit do více řádků", Source: model.SourceManual},
 	)
