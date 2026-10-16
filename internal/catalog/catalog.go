@@ -34,6 +34,7 @@ type Product struct {
 type Catalog struct {
 	Products []*Product
 	families map[string][]*Product
+	byID     map[string]*Product
 	// bySubstance indexes single-substance products by substance key.
 	bySubstance map[string][]*Product
 }
@@ -48,7 +49,7 @@ func Load() (*Catalog, error) {
 	if err != nil {
 		return nil, fmt.Errorf("catalog: %w", err)
 	}
-	c := &Catalog{families: map[string][]*Product{}, bySubstance: map[string][]*Product{}}
+	c := &Catalog{families: map[string][]*Product{}, byID: map[string]*Product{}, bySubstance: map[string][]*Product{}}
 	seen := map[string]bool{}
 	for i, row := range rows {
 		for j := range row {
@@ -77,6 +78,7 @@ func Load() (*Catalog, error) {
 		}
 		slices.Sort(p.substances)
 		c.Products = append(c.Products, p)
+		c.byID[p.ID] = p
 		c.families[p.family] = append(c.families[p.family], p)
 		if len(p.substances) == 1 {
 			for _, alts := range interactions.SplitSubstances(p.ActiveSubstance) {
