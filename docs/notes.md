@@ -31,3 +31,10 @@ Sheets split into a printed and a handwritten half (`scripts/split_samples.py`).
 - **Image:** built by `az acr build` into `pillgazeteam92.azurecr.io`. The tag is the commit hash.
 - **Env:** goes in as app settings (encrypted at rest). Redeploy with `set -a; . ./.env; set +a; ./deploy.sh`.
 - **Verified from the public URL:** `/health` 200, missing key 401, CORS preflight 204, real analyze of a box photo 200 in 8 s.
+
+## Share and PIN (2026-10-16)
+- **Storage:** PINs live only in memory (`internal/share`). The janitor drops expired entries every 15 s, and a restart or redeploy wipes everything.
+- **Limits:** creating a share allows 10 per minute per IP. Claim allows 30 per minute per IP, plus a separate limit on wrong PINs: 10 per IP per 15 min and 30 globally per minute (429 with `Retry-After`).
+- **Global limit trade-off:** it guards against guessing spread over many IPs, but an attacker can use it to block claims for everyone for up to a minute.
+- **Active PINs:** capped at 1000. Above that, share returns 503.
+- **Redeploy:** a deploy restarts the app and invalidates active PINs. Don't deploy during the demo.
