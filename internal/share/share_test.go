@@ -265,7 +265,7 @@ func TestMockPIN(t *testing.T) {
 		}
 	}
 	for _, m := range fixtures.Shared() {
-		if err := validate(m); err != nil {
+		if err := Validate(m); err != nil {
 			t.Errorf("fixture %s is not shareable: %v", m.ID, err)
 		}
 	}

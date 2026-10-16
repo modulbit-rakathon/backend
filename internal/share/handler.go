@@ -65,7 +65,7 @@ func (h *Handler) Share(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for i, m := range req.Medications {
-		if err := validate(m); err != nil {
+		if err := Validate(m); err != nil {
 			httpx.WriteError(w, http.StatusBadRequest, httpx.CodeInvalidInput, fmt.Sprintf("medications[%d]: %v", i, err))
 			return
 		}
@@ -137,7 +137,8 @@ var (
 	noteStyles = map[string]bool{model.NoteStylePrinted: true, model.NoteStyleHandwritten: true}
 )
 
-func validate(m model.SharedMedication) error {
+// Validate checks one shared medication against the contract (docs/api.md, section 2).
+func Validate(m model.SharedMedication) error {
 	if m.ID == "" || m.Name == "" {
 		return errors.New("id and name are required")
 	}

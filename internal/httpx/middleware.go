@@ -164,6 +164,8 @@ func CORS(allowedOrigin string) Middleware {
 				h := w.Header()
 				h.Set("Access-Control-Allow-Origin", origin)
 				h.Add("Vary", "Origin")
+				// The PDF report names its file here.
+				h.Set("Access-Control-Expose-Headers", "Content-Disposition")
 			}
 			if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {
 				if allowed {

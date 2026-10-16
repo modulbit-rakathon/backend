@@ -1,0 +1,137 @@
+package report
+
+// Texts follow the doctor's screen (frontend src/i18n, keys doc.*), so the
+// PDF says the same as the page it was downloaded from.
+type texts struct {
+	Title, Generated, Anonymous                                 string
+	ColMed, ColSubstance, ColStrength, ColDosage, ColSource     string
+	Regimen, ByAbbr, Variants, RegimenUnknown                   string
+	SourceBox, SourceNote, SourceManual                         string
+	Interactions, None, Duplicate, UncheckedTag                 string
+	Levels                                                      map[string]string
+	Reasons                                                     map[string]string
+	CheckedNote, SourceLabel, RegimenNote, Verify, Footer, Page string
+}
+
+var langs = map[string]texts{
+	"cs": {
+		Title:          "Léky pacienta (%d)",
+		Generated:      "Vytvořeno %s",
+		Anonymous:      "Seznam je anonymní: neobsahuje jméno ani jiný údaj o pacientovi.",
+		ColMed:         "Lék",
+		ColSubstance:   "Účinná látka",
+		ColStrength:    "Síla",
+		ColDosage:      "Dávkování",
+		ColSource:      "Zdroj",
+		Regimen:        "(režim)",
+		ByAbbr:         "podle zkratky",
+		Variants:       "%d varianty",
+		RegimenUnknown: "neznámá zkratka",
+		SourceBox:      "krabička",
+		SourceNote:     "lístek",
+		SourceManual:   "ručně",
+		Interactions:   "Interakce (%d)",
+		None:           "Interakce nenalezeny v databázi %s. To neznamená, že žádné nejsou.",
+		Duplicate:      "Dva přípravky se stejnou účinnou látkou (%s).",
+		UncheckedTag:   "Nezkontrolováno",
+		Levels: map[string]string{
+			"major":    "Závažná",
+			"moderate": "Středně závažná",
+			"minor":    "Méně závažná",
+			"unknown":  "Závažnost neuvedena",
+			"same":     "Duplicita",
+		},
+		Reasons: map[string]string{
+			"no_active_substance": "neznámá účinná látka",
+			"not_in_source":       "látka není v DDInter",
+			"partly_in_source":    "část látek není v DDInter",
+			"unknown_regimen":     "neznámá zkratka režimu",
+		},
+		CheckedNote: "Interakce jsou hledány jen v databázi DDInter a jen u látek, které se v ní podařilo najít. Nenalezení interakce neznamená, že interakce neexistuje.",
+		SourceLabel: "Zdroj:",
+		RegimenNote: "Složení onkologických režimů je podle zkratky z tabulky (HemOnc.org), ne z dokumentace pacienta, a jen protinádorová léčiva bez podpůrné léčby a dávkování.",
+		Verify:      "Ověřte s farmaceutem.",
+		Footer:      "PillGaze – údaje přečtené z fotek a potvrzené pacientem.",
+		Page:        "Strana %d/{nb}",
+	},
+	"en": {
+		Title:          "Patient’s medicines (%d)",
+		Generated:      "Created %s",
+		Anonymous:      "The list is anonymous: it holds no name or other patient data.",
+		ColMed:         "Medicine",
+		ColSubstance:   "Active ingredient",
+		ColStrength:    "Strength",
+		ColDosage:      "Dosage",
+		ColSource:      "Source",
+		Regimen:        "(regimen)",
+		ByAbbr:         "by abbreviation",
+		Variants:       "%d variants",
+		RegimenUnknown: "unknown abbreviation",
+		SourceBox:      "box",
+		SourceNote:     "note",
+		SourceManual:   "manual",
+		Interactions:   "Interactions (%d)",
+		None:           "No interactions found in the %s database. This does not mean there are none.",
+		Duplicate:      "Two products with the same active ingredient (%s).",
+		UncheckedTag:   "Not checked",
+		Levels: map[string]string{
+			"major":    "Major",
+			"moderate": "Moderate",
+			"minor":    "Minor",
+			"unknown":  "Severity not stated",
+			"same":     "Duplicate",
+		},
+		Reasons: map[string]string{
+			"no_active_substance": "active ingredient unknown",
+			"not_in_source":       "ingredient not in DDInter",
+			"partly_in_source":    "some ingredients not in DDInter",
+			"unknown_regimen":     "unknown regimen abbreviation",
+		},
+		CheckedNote: "Interactions are only looked up in DDInter and only for ingredients found there. Not finding an interaction does not mean none exists.",
+		SourceLabel: "Source:",
+		RegimenNote: "Oncology regimens are resolved from the abbreviation via a table (HemOnc.org), not from the patient’s records, and list only anticancer drugs without supportive care or doses.",
+		Verify:      "Verify with a pharmacist.",
+		Footer:      "PillGaze – read from photos and confirmed by the patient.",
+		Page:        "Page %d/{nb}",
+	},
+	"uk": {
+		Title:          "Ліки пацієнта (%d)",
+		Generated:      "Створено %s",
+		Anonymous:      "Список анонімний: не містить імені чи інших даних пацієнта.",
+		ColMed:         "Препарат",
+		ColSubstance:   "Діюча речовина",
+		ColStrength:    "Дозування",
+		ColDosage:      "Схема прийому",
+		ColSource:      "Джерело",
+		Regimen:        "(схема)",
+		ByAbbr:         "за абревіатурою",
+		Variants:       "варіантів: %d",
+		RegimenUnknown: "невідома абревіатура",
+		SourceBox:      "упаковка",
+		SourceNote:     "призначення",
+		SourceManual:   "вручну",
+		Interactions:   "Взаємодії (%d)",
+		None:           "У базі %s взаємодій не знайдено. Це не означає, що їх немає.",
+		Duplicate:      "Два препарати з однаковою діючою речовиною (%s).",
+		UncheckedTag:   "Не перевірено",
+		Levels: map[string]string{
+			"major":    "Серйозна",
+			"moderate": "Помірна",
+			"minor":    "Незначна",
+			"unknown":  "Ступінь не вказано",
+			"same":     "Дублювання",
+		},
+		Reasons: map[string]string{
+			"no_active_substance": "діюча речовина невідома",
+			"not_in_source":       "речовини немає в DDInter",
+			"partly_in_source":    "частини речовин немає в DDInter",
+			"unknown_regimen":     "невідома абревіатура схеми",
+		},
+		CheckedNote: "Взаємодії шукаються лише в базі DDInter і лише для речовин, які в ній знайдено. Відсутність взаємодії не означає, що її немає.",
+		SourceLabel: "Джерело:",
+		RegimenNote: "Склад онкологічних схем визначено за абревіатурою з таблиці (HemOnc.org), а не з документації пацієнта; лише протипухлинні препарати без супровідної терапії та доз.",
+		Verify:      "Перевірте з фармацевтом.",
+		Footer:      "PillGaze – дані зчитано з фото й підтверджено пацієнтом.",
+		Page:        "Сторінка %d/{nb}",
+	},
+}

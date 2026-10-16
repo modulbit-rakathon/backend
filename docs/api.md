@@ -145,6 +145,19 @@ Response `200`: `{ "medications": [ /* Medication[] */ ] }`
 - `429`: příliš mnoho neúspěšných pokusů (`Retry-After`).
 - **Ochrana proti hádání PINu:** limit neúspěšných pokusů na IP **a globální limit**.
 
+### `POST /api/report/pdf` (aplikace lékaře)
+Zpráva pro lékaře jako PDF: tabulka léků, interakce a co se zkontrolovat nepodařilo, se zdroji (DDInter, HemOnc). Nahrazuje tisk prohlížeče.
+
+Request: `{ "medications": [ /* Medication[] z claim */ ], "lang": "cs" }`
+- `medications`: stejný tvar a validace jako `POST /api/share` (max 50, `id` unikátní, neznámé pole `400`).
+- `lang`: `cs` | `en` | `uk`, výchozí `cs`. Jazyk textů ve zprávě, ne léků.
+
+Response `200`: `application/pdf`, hlavička `Content-Disposition: attachment; filename="pillgaze-leky-2026-10-16-2130.pdf"` (čas v Europe/Prague, přes CORS čitelná), `Cache-Control: no-store`.
+
+- **Interakce a režimy počítá backend sám,** stejně jako `doctorCheck.js`: režimy rozloží na léčiva, dvojice uvnitř režimu vynechá, přidá duplicity účinné látky. Frontend posílá jen seznam.
+- **Nic se neukládá,** PDF vznikne v paměti. Ve zprávě není jméno ani jiný údaj o pacientovi.
+- Chyby: `400` nevalidní body nebo `lang`, `413` moc léků, `429` rate limit (20 za minutu na IP).
+
 ## 4. Mock režim pro frontend
 
 - `MOCK_AI=true`: `/api/analyze` místo modelu použije pevné čtení pro každý druh fotky. Pak normálně páruje a slučuje, takže mock vrací sloučenou položku, konflikt síly, kandidáty i `not_found`.
