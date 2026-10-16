@@ -26,14 +26,13 @@ Co backend **nedělá**: slučování zdrojů, váhy, katalog léků, hledání 
 
 - Go (aktuální stable), **jen stdlib** kde to jde (`net/http` s method patterns, `encoding/json`, `log/slog`).
 - AI: Azure OpenAI přes APIM gateway, OpenAI v1 API. Tenký `net/http` klient nad `POST {AI_BASE_URL}/chat/completions`.
-- Deploy: Azure Container Apps, **min = max = 1 replika** (PIN store je v paměti).
+- Deploy: **Azure App Service for Containers** (B1, jedna instance, always on), image staví ACR. Container Apps nejdou, protože `Microsoft.App` není v subscription zaregistrovaný a naše role (Contributor na `rg-team92`) ho zaregistrovat nesmí. Skript je `deploy.sh`, veřejná URL **https://pillgaze-team92.azurewebsites.net**.
 
 ```
 AI_BASE_URL=https://apim-rakathon-q7146n.azure-api.net/openai/v1
 AI_API_KEY=...                  # hlavička "api-key", nikdy do repa
 AI_MODEL_A=gpt-6-1-sol-dz-eu    # "model" v requestu = název deploymentu
-AI_MODEL_B=gpt-6-luna-dz-eu
-DUAL_MODEL=false                # true = volat oba a rozdíly označit v uncertain_fields
+AI_MODEL_B=gpt-6-luna-dz-eu     # zatím nepoužitý (luna na rukopis nefunguje, viz docs/notes.md)
 MOCK_AI=false                   # true = /analyze vrací fixtury, PIN 0000 vrací fixní seznam
 PIN_TTL=180s
 APP_API_KEY=...                 # sdílený klíč v hlavičce X-Api-Key
@@ -41,7 +40,7 @@ ALLOWED_ORIGIN=...              # CORS
 PORT=8080
 ```
 
-Pokud model vrátí 400 kvůli `temperature` nebo `max_tokens`, je to pravděpodobně reasoning model: použij `max_completion_tokens` a `temperature` vynech.
+Oba modely jsou reasoning modely: posíláme `max_completion_tokens` a `temperature` vynecháváme. Obrázky jdou s `detail: high`. Pozor, názvy deploymentů jsou s `-dz-eu`, bez té přípony vrací 404.
 
 ## 4. Struktura
 
@@ -55,10 +54,18 @@ Pokud model vrátí 400 kvůli `temperature` nebo `max_tokens`, je to pravděpod
   internal/model/             # typ Medication podle docs/api.md
   internal/share/             # PIN store
   internal/fixtures/          # mock odpovědi pro MOCK_AI
+  internal/analyze/           # handler POST /api/analyze (multipart jen v paměti)
+/scripts
+  smoke.sh                    # jeden curl na model s obrázkem a JSON schématem
+  split_samples.py            # rozřízne vzorové listy na tištěnou a ručně psanou půlku
+  ground_truth.py             # 50_Pacientu.docx -> data/ground_truth.json
 /data
-  samples/                    # vzorové seznamy, krabičky, ground truth (nikdy reálná data pacientů)
+  manifest.json               # fotka -> číslo pacienta
+  ground_truth.json           # seznamy fiktivních pacientů od organizátorů
+  samples/, eval/             # rozřezané fotky a výsledky evalu (gitignored)
 /docs
   api.md                      # kontrakt (zdroj pravdy)
+  notes.md                    # nálezy: modely, eval, deploy, limity
 ```
 
 ## 5. Logika
@@ -74,7 +81,7 @@ Pokud model vrátí 400 kvůli `temperature` nebo `max_tokens`, je to pravděpod
 - Backend přidělí `id` (např. `med_<random>`).
 - Více fotek se zpracuje paralelně, každá zvlášť. Výsledky se spojí.
 - Retry **1×** při nevalidním JSON nebo 5xx, pak `422`. Žádné smyčky (ochrana kreditů).
-- `DUAL_MODEL=true`: stejný vstup do A i B paralelně a pole, kde se výstupy liší po normalizaci, doplň do `uncertain_fields`.
+- ~~`DUAL_MODEL`~~ **zrušeno:** luna si u rukopisu vymýšlí (najde jen 29 % položek), takže by jako nejistá vyšla skoro každá položka.
 - `MOCK_AI=true`: vrať fixture z `internal/fixtures` podle `source`, bez volání modelu. **Hotové do F0, ať frontend může začít hned.**
 
 ### 5.2 `internal/share` (PIN store)
@@ -95,7 +102,8 @@ Návrh je v `docs/api.md`, sekce 5. Zdrojem je ručně ověřená tabulka v `dat
 
 ## 6. Eval modelů (`cmd/eval`)
 
-- Vstup: `data/samples/*` + ground truth JSON (10-15 vzorků: psané, tištěné, krabičky).
+- Vstup: 27 vzorových listů organizátorů rozřezaných na tištěnou a ručně psanou půlku (160 položek na půlku) a `data/ground_truth.json`. Krabičky v evalu zatím nejsou, chybí k nim ground truth.
+- Spuštění: `go run ./cmd/eval -models gpt-6-1-sol-dz-eu -variants handwritten -detail high`, přepočet bez volání modelu přes `-rescore data/eval/<run>.json`.
 - Pro každý vzorek a model (A, B) zavolá `ai.Extract` a porovná s ground truth: název (přesná shoda i po normalizaci), síla, frekvence, latence, počet chyb JSON, **počet "opravených" překlepů** (model nesmí opravovat).
 - Výsledky slouží k výběru modelu a promptu. **Pošli je Matyášovi**, pro ladění vah v core.
 - Smoke test obou modelů uděláš dřív (jeden curl s obrázkem a JSON schématem), ještě před kódem.
@@ -103,39 +111,40 @@ Návrh je v `docs/api.md`, sekce 5. Zdrojem je ručně ověřená tabulka v `dat
 ## 7. Pořadí práce
 
 **F0, do 15:30**
-- [ ] Smoke test obou modelů (obrázek + JSON schema, krabička i rukopis)
-- [ ] Go skeleton: config, routing, middleware, `/health`
-- [ ] `internal/model` podle `docs/api.md`, **fixtury a `MOCK_AI=true`** (frontend se napojí hned)
-- [ ] Domluvit s Matyášem, jestli jeho core bere `Medication[]` z `analyze`
-- [ ] Získat od organizátorů vzorové seznamy a fotky krabiček
+- [x] Smoke test obou modelů (obrázek + JSON schema, krabička i rukopis)
+- [x] Go skeleton: config, routing, middleware, `/health`
+- [x] `internal/model` podle `docs/api.md`, **fixtury a `MOCK_AI=true`** (frontend se napojí hned)
+- [ ] Domluvit s Matyášem, jestli jeho core bere `Medication[]` z `analyze` (čeká na odpověď v [core#1](https://github.com/modulbit-rakathon/core/issues/1))
+- [x] Získat od organizátorů vzorové seznamy a fotky krabiček
 
 **F1, do 18:00**
-- [ ] `ai.Extract` na reálném modelu (JSON schéma, věrný přepis, retry 1×, jen paměť)
-- [ ] `POST /api/analyze` včetně paralelního zpracování více fotek
-- [ ] **Hello world deploy** na Container Apps (min = max = 1 replika), ověření z veřejné URL
-- [ ] `cmd/eval` a první výsledky
+- [x] `ai.Extract` na reálném modelu (JSON schéma, věrný přepis, retry 1×, jen paměť)
+- [x] `POST /api/analyze` včetně paralelního zpracování více fotek
+- [x] **Hello world deploy** (místo Container Apps na App Service, jedna instance), ověřeno z veřejné URL
+- [x] `cmd/eval` a první výsledky (sol pro analyze; luna na rukopis nefunguje)
 
 **F2, do 21:00**
-- [ ] `internal/share` + `POST /api/share` a `/claim` + testy s `-race`
-- [ ] Rate limity a globální limit neúspěšných PIN pokusů
-- [ ] První end-to-end proti reálnému frontendu na nasazené URL
+- [x] `internal/share` + `POST /api/share` a `/claim` + testy s `-race`
+- [x] Rate limity a globální limit neúspěšných PIN pokusů
+- [ ] První end-to-end proti reálnému frontendu na nasazené URL (issues pro frontend: [#4](https://github.com/modulbit-rakathon/frontend/issues/4), [#5](https://github.com/modulbit-rakathon/frontend/issues/5), [#6](https://github.com/modulbit-rakathon/frontend/issues/6))
 - [ ] Test PIN přenosu na dvou zařízeních
 
 **F3, do 01:00**
-- [ ] `DUAL_MODEL` jako signál nejistoty
-- [ ] Ladění promptů podle evalu
+- [x] ~~`DUAL_MODEL` jako signál nejistoty~~ zrušeno, viz 5.1
+- [x] Ladění promptů podle evalu (`detail: high` a přísnější prompt pro rukopis: misread názvy teď mají vždy příznak v `uncertain_fields`)
 - [ ] Interakce a režimy, **pokud** je nedělá core (po rozhodnutí)
 
 **01:00-06:00:** spánek na směny.
 
 **F4, 06:00-09:30**
-- [ ] Ladění promptů na reálných vzorcích
+- [ ] Ladění promptů na reálných vzorcích (kolega píše vlastní lístek; potřebujeme k němu i správný seznam)
+- [ ] Krabičky: česko-slovenský text se slepuje do `active_substance` a `form`
 - [ ] Kontrola, že logy ani odpovědi neobsahují osobní údaje nebo názvy léků
 - [ ] Kontrola, že po restartu a po expiraci nezůstává nic uloženého
 
 **09:30 feature freeze.** Dál jen bugfixy.
 
-**09:30-12:00:** finální deploy, záložní konfigurace (`MOCK_AI=true` jako nouzová varianta demo), zkouška PIN přenosu.
+**09:30-12:00:** finální deploy (pozor: každý deploy restartuje appku a smaže aktivní PINy), záložní konfigurace (`MOCK_AI=true` jako nouzová varianta demo), zkouška PIN přenosu.
 
 ## 8. Co NEDĚLAT
 
