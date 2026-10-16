@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"pillgaze/internal/config"
+	"pillgaze/internal/httpx"
 )
 
 func main() {
@@ -29,9 +30,19 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
+	if cfg.AppAPIKey == "" {
+		log.Warn("APP_API_KEY empty: /api/* is unauthenticated (mock mode only)")
+	}
+	handler := httpx.Chain(mux,
+		httpx.Recover(log),
+		httpx.Logger(log),
+		httpx.CORS(cfg.AllowedOrigin),
+		httpx.APIKey(cfg.AppAPIKey),
+	)
+
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           mux,
+		Handler:           handler,
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       60 * time.Second,
 		// Analyze waits for the model (60 s timeout, one retry).
