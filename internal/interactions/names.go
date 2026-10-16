@@ -170,10 +170,10 @@ var (
 	splitter = regexp.MustCompile(`\s*(?:\+|/|;|,)\s*`)
 )
 
-// splitSubstances turns an active_substance string into the names to look
+// SplitSubstances turns an active_substance string into the names to look
 // up. Each element lists alternative spellings of one substance, e.g.
 // "Amlodipin (amlodipinum)" -> [["Amlodipin", "amlodipinum"]].
-func splitSubstances(s string) [][]string {
+func SplitSubstances(s string) [][]string {
 	var out [][]string
 	// "Amlodipin / valsartan (amlodipinum / valsartanum)": split the outer
 	// text and the bracket separately and pair them up by position.
@@ -207,4 +207,18 @@ func splitSubstances(s string) [][]string {
 		}
 	}
 	return out
+}
+
+// SubstanceKey is the spelling-insensitive key of one substance name, the
+// same one DDInter lookups use: "Amlodipin", "amlodipinum" and "Amlodipine"
+// share it.
+func SubstanceKey(s string) string { return inputKey(s, true) }
+
+// Fold lowercases s and strips Czech and Slovak diacritics.
+func Fold(s string) string {
+	var b strings.Builder
+	for _, r := range strings.ToLower(s) {
+		b.WriteRune(fold(r))
+	}
+	return b.String()
 }

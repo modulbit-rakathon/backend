@@ -25,6 +25,8 @@ import (
 	"unicode"
 
 	"pillgaze/internal/ai"
+	"pillgaze/internal/catalog"
+	"pillgaze/internal/model"
 )
 
 type gtItem struct {
@@ -84,6 +86,7 @@ func main() {
 	par := flag.Int("p", 4, "parallel model calls")
 	detail := flag.String("detail", "", "image detail: low, high, auto (empty = model default)")
 	rescore := flag.String("rescore", "", "re-score a saved data/eval/*.json without calling the model")
+	matchRun := flag.String("match", "", "run catalogue matching over a saved data/eval/*.json (no model calls)")
 	boxDir := flag.String("boxes", "", "dir of box photos: run source=box on every k-th photo and dump outputs (no ground truth)")
 	flag.Parse()
 
@@ -98,6 +101,13 @@ func main() {
 	var manifest map[string]string
 	mustJSON("data/ground_truth.json", &gt)
 	mustJSON("data/manifest.json", &manifest)
+
+	if *matchRun != "" {
+		var results []runResult
+		mustJSON(*matchRun, &results)
+		evalMatching(results, gt)
+		return
+	}
 
 	if *rescore != "" {
 		var results []runResult
@@ -236,6 +246,108 @@ func deref(s *string) string {
 		return "null"
 	}
 	return fmt.Sprintf("%q", *s)
+}
+
+// evalMatching runs catalog.Match on saved model output. Ground-truth names
+// are catalogue names, so a wrong "matched" can be counted exactly.
+func evalMatching(results []runResult, gt map[string][]gtItem) {
+	cat, err := catalog.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+	type agg struct{ items, ok, wrong, confOK, confMiss, notFound, extraMatched int }
+	aggs := map[string]*agg{}
+	var wrong, extraMatched, misses []string
+	for _, r := range results {
+		if r.Error != "" {
+			continue
+		}
+		a := aggs[r.Variant]
+		if a == nil {
+			a = &agg{}
+			aggs[r.Variant] = a
+		}
+		byName := map[string]gtItem{}
+		for _, g := range gt[r.Patient] {
+			byName[g.Name] = g
+		}
+		used := make([]bool, len(r.Raw))
+		for _, it := range r.Items {
+			a.items++
+			if it.Got == "" {
+				continue
+			}
+			i := slices.IndexFunc(r.Raw, func(x ai.Item) bool { return x.Name == it.Got })
+			for i >= 0 && used[i] {
+				j := slices.IndexFunc(r.Raw[i+1:], func(x ai.Item) bool { return x.Name == it.Got })
+				if j < 0 {
+					i = -1
+					break
+				}
+				i += j + 1
+			}
+			if i < 0 {
+				continue
+			}
+			used[i] = true
+			raw := r.Raw[i]
+			g := byName[it.Expected]
+			m := cat.Match(raw.Name, raw.Strength, slices.Contains(raw.UncertainFields, "name"))
+			correct := func(p model.CatalogProduct) bool {
+				fam := catalog.FamilyKey(p.Name)
+				// The sheet may drop the manufacturer ("MAGNESII LACTICI").
+				same := func(n string) bool {
+					k := catalog.FamilyKey(n)
+					return fam == k || strings.HasPrefix(fam+" ", k+" ")
+				}
+				sameBrand := same(g.Name) || (g.Alternative != nil && same(*g.Alternative))
+				return sameBrand && (g.Strength == nil || slices.Equal(catalog.StrengthNumbers(p.Strength), catalog.StrengthNumbers(*g.Strength)))
+			}
+			switch m.Status {
+			case catalog.StatusMatched:
+				if correct(*m.Product) {
+					a.ok++
+				} else {
+					a.wrong++
+					wrong = append(wrong, fmt.Sprintf("%s/%s: read %q -> %s %s, expected %s", r.Variant, r.Patient, raw.Name, m.Product.Name, m.Product.Strength, g.Name))
+				}
+			case catalog.StatusNeedsConfirmation:
+				if slices.ContainsFunc(m.Candidates, func(c model.CatalogCandidate) bool { return correct(c.CatalogProduct) }) {
+					a.confOK++
+				} else {
+					a.confMiss++
+					misses = append(misses, fmt.Sprintf("%s/%s: read %q (%s) -> %d candidates, expected %s", r.Variant, r.Patient, raw.Name, deref(raw.Strength), len(m.Candidates), g.Name))
+				}
+			default:
+				a.notFound++
+				misses = append(misses, fmt.Sprintf("%s/%s: read %q (%s) -> not found, expected %s", r.Variant, r.Patient, raw.Name, deref(raw.Strength), g.Name))
+			}
+		}
+		for i, raw := range r.Raw {
+			if !used[i] {
+				if m := cat.Match(raw.Name, raw.Strength, slices.Contains(raw.UncertainFields, "name")); m.Status == catalog.StatusMatched {
+					a.extraMatched++
+					extraMatched = append(extraMatched, fmt.Sprintf("%s/%s: extra %q -> %s %s", r.Variant, r.Patient, raw.Name, m.Product.Name, m.Product.Strength))
+				}
+			}
+		}
+	}
+	fmt.Printf("%-12s %5s %8s %8s %8s %8s %8s %8s\n", "variant", "items", "matched", "WRONG", "confOK", "confMiss", "notFound", "extraM")
+	for v, a := range aggs {
+		fmt.Printf("%-12s %5d %8d %8d %8d %8d %8d %8d\n", v, a.items, a.ok, a.wrong, a.confOK, a.confMiss, a.notFound, a.extraMatched)
+	}
+	fmt.Println("\nwrong matched:")
+	for _, w := range wrong {
+		fmt.Println("  " + w)
+	}
+	fmt.Println("not confirmed and correct product not offered:")
+	for _, w := range misses {
+		fmt.Println("  " + w)
+	}
+	fmt.Println("extra items matched (check by hand):")
+	for _, w := range extraMatched {
+		fmt.Println("  " + w)
+	}
 }
 
 func mustJSON(path string, v any) {

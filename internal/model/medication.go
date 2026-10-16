@@ -30,6 +30,8 @@ type Medication struct {
 	UncertainFields []string   `json:"uncertain_fields"`
 	Sources         []string   `json:"sources,omitempty"`
 	Conflicts       []Conflict `json:"conflicts,omitempty"`
+	// Catalog is set by analyze; it is not shared and not sent back.
+	Catalog *CatalogMatch `json:"catalog,omitempty"`
 }
 
 type Conflict struct {
@@ -62,4 +64,28 @@ type SharedMedication struct {
 	Source          string   `json:"source"`
 	Sources         []string `json:"sources,omitempty"`
 	NoteStyle       *string  `json:"note_style,omitempty"`
+}
+
+// CatalogMatch links a read item to the organisers' catalogue.
+// Status is "matched" (Product set), "needs_confirmation" (pick from
+// Candidates) or "not_found".
+type CatalogMatch struct {
+	Status     string             `json:"status"`
+	Product    *CatalogProduct    `json:"product,omitempty"`
+	Candidates []CatalogCandidate `json:"candidates,omitempty"`
+}
+
+type CatalogProduct struct {
+	ID              string `json:"id"`
+	Name            string `json:"name"`
+	Strength        string `json:"strength"`
+	Form            string `json:"form"`
+	ActiveSubstance string `json:"active_substance"`
+	Supplement      bool   `json:"supplement,omitempty"`
+}
+
+type CatalogCandidate struct {
+	CatalogProduct
+	Score float64 `json:"score"`
+	By    string  `json:"match"` // name | prefix | substance | word | fuzzy
 }

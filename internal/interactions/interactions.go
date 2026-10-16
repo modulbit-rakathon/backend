@@ -173,7 +173,7 @@ func (db *DB) Check(meds []Med) Result {
 			res.Unchecked = append(res.Unchecked, Unchecked{ID: m.ID, Name: m.Name, Reason: ReasonNoSubstance})
 			continue
 		}
-		parts := splitSubstances(*m.ActiveSubstance)
+		parts := SplitSubstances(*m.ActiveSubstance)
 		var missing []string
 		found := 0
 		for _, alts := range parts {

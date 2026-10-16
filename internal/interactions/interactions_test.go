@@ -47,7 +47,7 @@ func TestResolve(t *testing.T) {
 		"Trospium-chlorid (trospii chloridum)":                    {"Trospium"},
 	}
 	for in, want := range tests {
-		parts := splitSubstances(in)
+		parts := SplitSubstances(in)
 		if len(parts) != len(want) {
 			t.Errorf("%q: split into %v, want %d parts", in, parts, len(want))
 			continue
@@ -72,7 +72,7 @@ func TestResolveNoFalseMatch(t *testing.T) {
 		"kalium",
 		"",
 	} {
-		for _, alts := range splitSubstances(in) {
+		for _, alts := range SplitSubstances(in) {
 			if got, ok := db.Resolve(alts); ok {
 				t.Errorf("%q resolved to %q, want no match", in, got)
 			}
