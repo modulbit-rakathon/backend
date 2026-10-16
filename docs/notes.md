@@ -75,3 +75,38 @@ Sheets split into a printed and a handwritten half (`scripts/split_samples.py`).
   - Cations (calcium, magnesium…) are only dropped from the input, otherwise "magnesium lactate" matched "Calcium lactate".
   - If two DDInter names reduce to the same key, nothing is matched.
 - **Coverage of the organisers' catalogue:** 214 of 258 substance mentions (83 %). Every match checked by hand.
+
+## Catalogue matching and merging (2026-10-16, contract v3)
+- **Catalogue:** the organisers' `Katalog_leciv_kompletni_309.csv` is embedded in `internal/catalog` (303 products after dropping 6 duplicates). Brand families come from the name without strength ("AGEN 5"/"AGEN 10" → `agen`).
+- **`matched` only when everything holds:**
+  - the same brand (or the brand without the manufacturer suffix, but never across a product word like COMBI/RETARD/NEO/PLUS/H…),
+  - exactly the read strength,
+  - the model was sure of the name.
+- **Everything else is `needs_confirmation` with up to 3 candidates.** Candidates come from:
+  - the same brand at another strength,
+  - the generic substance,
+  - one word of a joined name ("Tritace Piramil"),
+  - fuzzy matching against brands and substances (min. similarity 0.6 or 0.75).
+- **Eval on saved output, no model calls** (`go run ./cmd/eval -match data/eval/<run>.json`):
+
+  | half | items | matched | WRONG matched | correct among candidates | not offered / not found |
+  |---|---|---|---|---|---|
+  | printed | 160 | 157 | 0 | 2 | 0 |
+  | handwritten (3 runs) | 160 | 84–88 | 0 | 56–61 | 8–9 |
+
+  The remaining misses on handwriting are other brands the writer used that are not in the catalogue (Concor, Hypnogen, Omnic Tocas, Glucophage XR, Nolpaza). That is correct behaviour.
+- **Fixes found by the eval and tests:**
+  - "Concor" was matched with certainty to CONCOR COMBI (a different product) → product words and exact strength.
+  - "Zaldiar" without a strength was matched with certainty → no certainty without a read strength.
+  - The magnesium/calcium lactate case in interactions → cations are only dropped from the input.
+- **Merging:**
+  - same brand, or the same substances and strength (generic swap with a name conflict),
+  - fields: identity from the box first, dosing from the note,
+  - conflicts on strength, frequency and name,
+  - a brand read with certainty at a strength missing from the catalogue joins that brand's group from another source (so the strength shows as a conflict),
+  - unsure items are never merged.
+- **End-to-end (real model):** the handwritten half of patient 32 + the Palexia retard and Novetron boxes, 3 photos in 39 s, 10k prompt tokens.
+  - Palexia merged box + note.
+  - Baclofen, Veral retard and Novetron `matched`.
+  - Unsure handwritten names have the correct product as the first candidate.
+  - Interactions run straight off the output.

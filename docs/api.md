@@ -1,8 +1,8 @@
-# PillGaze API kontrakt (v2)
+# PillGaze API kontrakt (v3)
 
 Spojení Jonášova návrhu a požadavků zadání MOÚ. **Závazný pro frontend i backend, změny jen po domluvě.** Frontend jede proti mocku (`MOCK_AI=true`), backend proti reálnému modelu, oba stejný formát.
 
-**Dělba práce:** backend **jen čte fotky** (`analyze`) a **předává seznam lékaři** (`share`). Párování s katalogem, slučování zdrojů, váhy a označení rozporů dělá **core (JS) na klientovi**.
+**Dělba práce (v3, od 2026-10-16):** backend **čte fotky, páruje je s katalogem a slučuje lístky s krabičkami** (`analyze`), **předává seznam lékaři** (`share`) a **kontroluje interakce** (`interactions`). Frontend zobrazí výsledek, nechá pacienta potvrdit nejisté položky a vyřešit rozpory. Core na klientovi párování ani slučování nedělá.
 
 ## 1. Principy
 
@@ -31,7 +31,11 @@ Spojení Jonášova návrhu a požadavků zadání MOÚ. **Závazný pro fronten
   "sources": ["box", "note"],
   "conflicts": [
     {"field": "strength", "values": [{"source": "box", "value": "10 mg"}, {"source": "note", "value": "5 mg"}]}
-  ]
+  ],
+  "catalog": {
+    "status": "matched",
+    "product": {"id": "cat_245", "name": "PRESTARIUM NEO", "strength": "5 mg", "form": "Potahované tablety", "active_substance": "Perindopril-arginin (perindoprilum argininum)"}
+  }
 }
 ```
 
@@ -40,20 +44,32 @@ Spojení Jonášova návrhu a požadavků zadání MOÚ. **Závazný pro fronten
 | `id` | string | ano | backend v `analyze`, klient při ručním zadání | unikátní v rámci sdílení |
 | `kind` | enum | ano | backend | `drug` \| `regimen` (zkratka onkologické léčby, např. FOLFOX). U `regimen` je `name` zkratka |
 | `name` | string | ano | backend | **přesně jak je přečtený**, bez oprav překlepů |
-| `active_substance` | string \| null | ne | backend jen pokud je **doslova na fotce**, jinak core z katalogu | INN |
+| `active_substance` | string \| null | ne | backend: doslova z fotky, jinak z katalogu u `catalog.status = matched` | po potvrzení kandidáta ji frontend vezme z `candidates[].active_substance` |
 | `strength` | string \| null | ne | backend | např. `"5 mg"` |
 | `form` | string \| null | ne | backend | tableta, kapsle… |
 | `frequency` | string \| null | ne | backend | volný text nebo schéma `1-0-1` |
 | `amount` | string \| null | ne | backend | dávka na jedno užití |
-| `source` | enum | ano | backend / core | `note` \| `box` \| `manual` |
-| `note_style` | enum | ne | backend | `printed` \| `handwritten`, jen u položek z lístku. Core z něj volí váhu zdroje |
-| `uncertain_fields` | string[] | ne | backend (nečitelné) i core (rozpory) | pole, která má frontend zvýraznit |
-| `sources` | enum[] | ne | **core** | všechny zdroje, které přispěly po sloučení |
-| `conflicts` | object[] | ne | **core** | pole, kde se zdroje neshodují |
+| `source` | enum | ano | backend, frontend u ručního zadání | `note` \| `box` \| `manual`. U sloučené položky je to zdroj s nejvyšší prioritou |
+| `note_style` | enum | ne | backend | `printed` \| `handwritten`, jen u položek z lístku |
+| `uncertain_fields` | string[] | ano | backend (nečitelné i rozpory) | pole, která má frontend zvýraznit |
+| `sources` | enum[] | ano | backend | všechny zdroje, které přispěly po sloučení |
+| `conflicts` | object[] | ne | backend | pole, kde se zdroje neshodují (`strength`, `frequency`, `name`) |
+| `catalog` | object | ne | backend | párování s katalogem, viz níže. Jen u `kind: drug` z `analyze` |
+
+### `catalog`
+- **`status: "matched"`:** jistá shoda. Stejná značka, přesně přečtená síla a model si názvem byl jistý. Je vyplněný `product`.
+- **`status: "needs_confirmation"`:** pacient musí vybrat z `candidates` (max 3, seřazené, nejlepší první), nebo vyhledat jiný přípravek přes `GET /api/catalog`. Kandidát má navíc `score` (0–1) a `match`:
+  - `name`: stejná značka, jiná nebo nepřečtená síla, případně nejistý název,
+  - `prefix`: značka bez výrobce,
+  - `substance`: na lístku je účinná látka,
+  - `word`: jedno slovo z delšího názvu,
+  - `fuzzy`: podobný zápis.
+- **`status: "not_found"`:** v katalogu nic podobného není (jiná značka, nečitelné). Pacient může vyhledat ručně nebo položku nechat.
+- **Nikdy tichá shoda:** nejistě přečtený název ani shoda podle látky nebo podobnosti nejsou nikdy `matched`.
 
 Nenalezené nebo nečitelné pole je `null`, nikdy odhad.
 
-**Pole přijímaná při sdílení** (`POST /api/share`): `id, kind, name, active_substance, strength, form, frequency, amount, source, sources, note_style`. `uncertain_fields` a `conflicts` se **nesdílejí**, pacient je při potvrzení vyřešil.
+**Pole přijímaná při sdílení** (`POST /api/share`): `id, kind, name, active_substance, strength, form, frequency, amount, source, sources, note_style`. `uncertain_fields`, `conflicts` a `catalog` se **nesdílejí**, pacient je při potvrzení vyřešil. Frontend je před sdílením odstraní.
 
 Validace: neznámé `source`, `kind` nebo jakékoli neznámé pole → `400`. Max 50 položek (`413`), max 200 znaků na řetězec.
 
@@ -63,22 +79,50 @@ Validace: neznámé `source`, `kind` nebo jakékoli neznámé pole → `400`. Ma
 `200 ok`, bez autentizace.
 
 ### `POST /api/analyze`
-`multipart/form-data`:
-- `source` = `box` \| `note` \| `regimen`
-- `image` (lze opakovat, max 6 souborů, JPEG/PNG, dohromady max 10 MB)
+`multipart/form-data`. Fotky se posílají v polích podle druhu, každé pole jde opakovat:
+- `note`: lístek nebo seznam (tištěný i ručně psaný),
+- `box`: krabička, blistr, lahvička,
+- `regimen`: zpráva se zkratkou onkologického režimu.
+
+Celkem max **10 fotek, dohromady 15 MB**, JPEG/PNG (kontroluje se obsah). Starý tvar (`source` + `image`) vrací `400`.
 
 Response `200`:
 
 ```json
 {
-  "medications": [ /* Medication[] přesně jak byly přečteny */ ],
+  "medications": [ /* Medication[]: spárované s katalogem a sloučené */ ],
   "unreadable_items": 0
 }
 ```
 
-- Backend **nic neopravuje ani nedohledává**. Překlep v názvu zůstane překlepem, rozpory hledá core.
-- Chyby: `400` špatný vstup, `413` moc velké, `415` špatný formát, `422` na fotce nic nenalezeno, `429` rate limit, `502` chyba modelu.
-- Při nevalidním výstupu modelu backend jednou zopakuje volání. Pak vrátí `422`.
+- **Postup:** každá fotka se čte zvlášť a paralelně. Každý lék se spáruje s katalogem (`catalog`) a pak se sloučí položky, které jsou stejný lék z různých fotek:
+  - stejná značka,
+  - jiná značka se stejnou účinnou látkou a silou (generická záměna, rozdílný název je pak v `conflicts`),
+  - stejná krabička vyfocená dvakrát.
+- **Výběr polí při sloučení:**
+  - název, síla, forma a účinná látka: krabička > tištěný lístek > rukopis,
+  - dávkování: lístek > krabička.
+- **Konflikty:** rozdíly mezi zdroji jsou v `conflicts` a v `uncertain_fields`.
+- **Co se nespojuje:**
+  - nejisté položky (`needs_confirmation`, `not_found`),
+  - dvě různé síly stejného léku na jednom lístku, protože pacient může brát obě.
+- **Doslovný přepis:** `name` zůstává tak, jak byl přečtený, překlepy se neopravují. Katalogový název je v `catalog.product.name`.
+- **Chyby:**
+  - `400` špatný vstup,
+  - `413` moc fotek nebo moc velké,
+  - `415` špatný formát,
+  - `422` na fotkách nic nenalezeno, nebo nevalidní výstup modelu i po jednom opakování,
+  - `429` rate limit,
+  - `502` chyba modelu.
+
+  Když selže jedna fotka, selže celý request.
+- **Doba odpovědi:** fotky běží paralelně, takže rozhoduje ta nejpomalejší. Rukopis trvá 20–40 s, krabička a tištěný lístek kolem 10 s.
+
+### `GET /api/catalog?q=prestarium`
+Vyhledání v katalogu organizátorů (303 přípravků) podle značky nebo účinné látky. Slouží k výběru jiného přípravku, než nabídly `candidates`, a k ručnímu zadání lékařem.
+- **Model se nevolá,** hledá se jen v paměti.
+- **`q`** musí mít 2–100 znaků (jinak `400`). Rate limit je 120 za minutu na IP. Ve frontendu hledat s debounce zhruba 300 ms.
+- **Response `200`:** `{ "products": [ {id, name, strength, form, active_substance, supplement?} ] }`, max 20 výsledků, nejlepší první.
 
 ### `POST /api/share`
 Request: `{ "medications": [ /* Medication[] */ ] }`
@@ -103,7 +147,7 @@ Response `200`: `{ "medications": [ /* Medication[] */ ] }`
 
 ## 4. Mock režim pro frontend
 
-- `MOCK_AI=true`: `/api/analyze` vrací fixní odpověď podle `source`, bez volání modelu.
+- `MOCK_AI=true`: `/api/analyze` místo modelu použije pevné čtení pro každý druh fotky. Pak normálně páruje a slučuje, takže mock vrací sloučenou položku, konflikt síly, kandidáty i `not_found`.
 - Při `MOCK_AI=true` navíc **PIN `0000` vždy vrací stejný seznam** (fixtura) i po opakovaném vyzvednutí, ať jde testovat aplikaci lékaře bez sdílení z telefonu.
 
 ## 5. Interakce a onkologické režimy (v2.1)
@@ -113,7 +157,7 @@ Zadání je chce **jen v rozhraní lékaře**. Interakce dělá backend (rozhodn
 ### `POST /api/interactions`
 Request: `{ "medications": Medication[] }`. Bere tvar z `analyze` i z `claim`. Neznámé pole vrací `400`, víc než 50 položek `413`, `id` musí být vyplněné a unikátní.
 
-Kontroluje se jen podle `active_substance`. Ta může být česky, latinsky i anglicky, včetně kombinací oddělených `+` nebo `/` a tvaru `"Amlodipin (amlodipinum)"` z katalogu. Položka bez `active_substance` se nekontroluje, core ji musí doplnit z katalogu.
+Kontroluje se jen podle `active_substance`. Ta může být česky, latinsky i anglicky, včetně kombinací oddělených `+` nebo `/` a tvaru `"Amlodipin (amlodipinum)"` z katalogu. Položka bez `active_substance` se nekontroluje. U `matched` ji doplní `analyze`, u potvrzeného kandidáta ji frontend vezme z kandidáta.
 
 Response `200`:
 
@@ -150,12 +194,13 @@ Response `200`:
 | "DB s TTL a cleanup jobem" | **paměť serveru, žádná DB** | zadání: data nesmí zůstat na externím úložišti |
 | 10 neúspěšných pokusů / IP | limit na IP **a globální** | 10 000 kombinací se dá projít přes více IP |
 | `matched_with` | **`sources[]` a `conflicts[]`** | párování a slučování dělá core, lékař vidí jeden deduplikovaný seznam |
-| `candidates` v `analyze` | **vypuštěno** | podobné názvy hledá core v katalogu |
+| `analyze`: `source` + `image`, jeden druh fotek | **`note`, `box`, `regimen` v jednom requestu**, max 10 fotek a 15 MB | backend vrací rovnou sloučený seznam (v3) |
+| `candidates` v `analyze` | vypuštěno ve v2, **vráceno ve v3** jako `catalog.candidates` | párování převzal backend (v3) |
 | `source` = `note` bez rozlišení | přibylo `note_style` | váhy zdrojů se liší pro psané a tištěné |
 | — | `kind`, `form`, `uncertain_fields` | onkologické režimy, zvýraznění nejistých polí |
 
 ## 7. Otevřené body
 
-- **Formát vstupu core.** Core (JS) musí brát `Medication[]` z `analyze`. Pokud ne, domluvit úpravu na jedné ze stran.
+- ~~**Formát vstupu core.**~~ Od v3 nerelevantní, párování a slučování dělá backend.
 - **Aplikace lékaře je povinný výstup** zadání. Doporučení: route `/doctor` ve stejné Vite appce. Je potřeba určit vlastníka.
 - Kdo dělá interakce a rozklad režimů (sekce 5)? Ověřit u mentora Rusinka, že patří jen do rozhraní lékaře.

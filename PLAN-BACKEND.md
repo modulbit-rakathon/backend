@@ -11,7 +11,7 @@ Rakathon 2026, výzva Masarykova onkologického ústavu. Deadline: **sobota 13:0
 3. Mock režim pro frontend, deploy a ochrana endpointů.
 4. *(Nerozhodnuto)* interakce a rozklad onkologických režimů pro lékaře, pokud je nebude dělat core. Viz `docs/api.md`, sekce 5.
 
-Co backend **nedělá**: slučování zdrojů, váhy, katalog léků, hledání účinné látky, označování rozporů.
+**Změna 2026-10-16 (kontrakt v3):** backend převzal od core párování s katalogem (název → přípravek → účinná látka), slučování lístků s krabičkami a označování rozporů. `POST /api/analyze` bere fotky všech druhů najednou a vrací hotový seznam. `GET /api/catalog` slouží k vyhledávání. Interakce (`/api/interactions`, DDInter) dělá taky backend.
 
 ## 2. Tvrdá pravidla ze zadání
 
@@ -136,6 +136,12 @@ Návrh je v `docs/api.md`, sekce 5. Zdrojem je ručně ověřená tabulka v `dat
 
 **01:00-06:00:** spánek na směny.
 
+**Navíc (v3, 2026-10-16)**
+- [x] Katalog organizátorů (`internal/catalog`), párování s kandidáty, slučování lístek ↔ krabička, nový tvar `/api/analyze`, `GET /api/catalog`
+- [x] Eval párování (`cmd/eval -match`): 0 špatných jistých shod na 640 položkách
+- [x] Interakce přes DDInter (`/api/interactions`)
+- [ ] Frontend: nový tvar analyze, výběr kandidátů, hledání (issue)
+
 **F4, 06:00-09:30**
 - [ ] Ladění promptů na reálných vzorcích (kolega píše vlastní lístek; potřebujeme k němu i správný seznam)
 - [ ] Krabičky: česko-slovenský text se slepuje do `active_substance` a `form`
@@ -149,7 +155,7 @@ Návrh je v `docs/api.md`, sekce 5. Zdrojem je ručně ověřená tabulka v `dat
 ## 8. Co NEDĚLAT
 
 - Žádná databáze, žádné soubory s daty, žádné účty ani login.
-- Žádné slučování zdrojů, katalog ani váhy v backendu (je to core).
+- ~~Žádné slučování zdrojů, katalog ani váhy v backendu~~ Od v3 je dělá backend.
 - Žádné opravování překlepů ani dohledávání účinné látky modelem.
 - Žádné další Azure služby (Cosmos, AI Search, Functions, fronta).
 - Žádné logování těl requestů, obrázků nebo názvů léků.
