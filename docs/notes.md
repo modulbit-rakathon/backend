@@ -24,3 +24,10 @@ Sheets split into a printed and a handwritten half (`scripts/split_samples.py`).
 - **Main risk: substituting a known drug.** In about 5 of 160 handwritten items sol returned a different existing drug instead of an illegible name (Januvia instead of Juzina, Myrbetriq instead of Moventig, Prothiaden, Gabapentin, Kalium FMK instead of Kodein FMK). Those are clinically dangerous errors, and the eval reports them as `extra`.
 - The handwritten copies deliberately use alternative brands (Concor instead of Bisoprolol PMCS, Hypnogen instead of Zolpidem) and a different notation ("20" without units, "3x za den"). Sol transcribes them faithfully.
 - Cost of the run: 108 calls, about 120k completion tokens.
+
+## Deploy (2026-10-16)
+- **URL:** https://pillgaze-team92.azurewebsites.net (App Service for Containers, B1, one instance, always on, `rg-team92`, Sweden Central).
+- **Why not Container Apps:** `Microsoft.App` is not registered in the `rakaton` subscription, and our role (Contributor on `rg-team92`) cannot register it.
+- **Image:** built by `az acr build` into `pillgazeteam92.azurecr.io`. The tag is the commit hash.
+- **Env:** goes in as app settings (encrypted at rest). Redeploy with `set -a; . ./.env; set +a; ./deploy.sh`.
+- **Verified from the public URL:** `/health` 200, missing key 401, CORS preflight 204, real analyze of a box photo 200 in 8 s.
