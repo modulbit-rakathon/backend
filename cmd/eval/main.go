@@ -73,6 +73,7 @@ type runResult struct {
 	Items      []itemResult `json:"items"`
 	Extra      []string     `json:"extra,omitempty"`
 	Unreadable int          `json:"unreadable_items"`
+	Raw        []ai.Item    `json:"raw,omitempty"` // model output, for rescoring without new calls
 }
 
 func main() {
@@ -165,6 +166,7 @@ func run(c *ai.Client, j job, expected []gtItem) runResult {
 		return r
 	}
 	r.Unreadable = res.UnreadableItems
+	r.Raw = res.Items
 
 	used := make([]bool, len(res.Items))
 	for _, e := range expected {
@@ -184,14 +186,15 @@ func run(c *ai.Client, j job, expected []gtItem) runResult {
 			ir.Got = it.Name
 			ir.GotStrength, ir.GotFrequency = it.Strength, it.Frequency
 			ir.NoteStyle, ir.Uncertain = it.NoteStyle, it.UncertainFields
-			ir.StrengthOK = sameValue(e.Strength, it.Strength)
+			ir.StrengthOK = sameNumbers(e.Strength, it.Strength)
 			// The sheet writes "1 tableta při bolesti" as one field; the model
 			// may split it into amount and frequency.
 			ir.FrequencyOK = sameValue(e.Frequency, it.Frequency) ||
 				(it.Amount != nil && it.Frequency != nil && sameValue(e.Frequency, ptr(*it.Amount+" "+*it.Frequency)))
+			// Frequency is left out: handwritten copies rewrite "1-1-1" as
+			// "3x denně", which is faithful but not comparable.
 			ir.SilentProblem = (bestLv == lvFuzzy && !slices.Contains(it.UncertainFields, "name")) ||
-				(!ir.StrengthOK && it.Strength != nil && !slices.Contains(it.UncertainFields, "strength")) ||
-				(!ir.FrequencyOK && it.Frequency != nil && !slices.Contains(it.UncertainFields, "frequency"))
+				(!ir.StrengthOK && it.Strength != nil && !slices.Contains(it.UncertainFields, "strength"))
 		}
 		r.Items = append(r.Items, ir)
 	}
@@ -292,6 +295,20 @@ func sameValue(want, got *string) bool {
 		}, s)
 	}
 	return norm(*want) == norm(*got)
+}
+
+var numberRe = regexp.MustCompile(`\d+(?:[,.]\d+)?`)
+
+// sameNumbers compares the numbers in a strength ("20 mg / 10 mg" vs "20/10"):
+// handwritten copies often drop units, which is faithful, not an error.
+func sameNumbers(want, got *string) bool {
+	if want == nil || got == nil {
+		return want == got
+	}
+	nums := func(s string) string {
+		return strings.ReplaceAll(strings.Join(numberRe.FindAllString(s, -1), " "), ".", ",")
+	}
+	return nums(*want) == nums(*got)
 }
 
 func levenshtein(a, b string) int {
@@ -405,9 +422,9 @@ func summarize(results []runResult) {
 exact/norm/part/alt/fuzzy/miss: share of expected items by best name match
   (part = name without/with manufacturer suffix, alt = the bracketed alternative brand)
   (fuzzy = close but differently spelled: a misread, or a faithful copy of a typo)
-str/freq: strength/frequency equal to ground truth, of found items
+str: same numbers in strength as ground truth; freq: same frequency text (of found items)
 flag: found items with any uncertain_fields
-silent: found items with a wrong name/strength/frequency NOT flagged as uncertain
+silent: found items with a misread name or wrong strength numbers NOT flagged as uncertain
 extra: returned items matching nothing expected (invented or replaced names)
 style: note_style differs from the photo variant`)
 }
