@@ -62,3 +62,16 @@ Sheets split into a printed and a handwritten half (`scripts/split_samples.py`).
   - ® and ™ are left out of the name.
   - Combined active substances are separated with " + " ("perindoprilum erbuminum + amlodipinum + indapamidum"), so there is no clash with the "/" in strengths.
 - **Handwritten dosage on a box:** when one is there ("0-1" on Stadamet), the model transcribes it and flags `frequency` as uncertain. A name on a pharmacy sticker did not reach the output.
+
+## Interactions (2026-10-16)
+- **Sources checked:**
+  - **NIH RxNav:** the interaction API ended in January 2024.
+  - **Drugs.com, Medscape, WebMD:** no API, and automated use is not allowed.
+  - **RxLabelGuard:** FDA labels, $20/month after a 7-day trial; it covers US drugs only, so the same gaps.
+  - **SÚKL SPC:** section 4.5 is authoritative, but it is unstructured text (a 2.6 GB zip of PDF/DOC) and interactions are listed against drug classes, not pairs.
+- **Chosen: DDInter.** Downloadable CSVs with 235k pairs and a severity level, licence CC BY-NC-SA 4.0. Built with `scripts/ddinter.py` into `internal/interactions/ddinter.csv.gz` (1.2 MB, embedded in the binary, about 45 MB RAM).
+- **Note:** the download on ddinter2.scbdd.com is the same as 1.0 (about 1,970 drugs). DDInter 2.0 online has more, but not as a download.
+- **Name matching:** Czech, Latin and English INNs reduce to one key (salts, Latin and Czech endings, c/k, qu/kv, ph/f…), with exact synonyms in `aliases`.
+  - Cations (calcium, magnesium…) are only dropped from the input, otherwise "magnesium lactate" matched "Calcium lactate".
+  - If two DDInter names reduce to the same key, nothing is matched.
+- **Coverage of the organisers' catalogue:** 214 of 258 substance mentions (83 %). Every match checked by hand.

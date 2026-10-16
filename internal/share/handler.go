@@ -1,7 +1,6 @@
 package share
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -49,7 +48,7 @@ type claimResponse struct {
 // Share handles POST /api/share.
 func (h *Handler) Share(w http.ResponseWriter, r *http.Request) {
 	var req shareRequest
-	if status, err := decode(r, &req); err != nil {
+	if status, err := httpx.DecodeJSON(r, &req); err != nil {
 		code := httpx.CodeInvalidInput
 		if status == http.StatusRequestEntityTooLarge {
 			code = httpx.CodeTooLarge
@@ -98,7 +97,7 @@ func (h *Handler) Claim(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req claimRequest
-	if status, err := decode(r, &req); err != nil {
+	if status, err := httpx.DecodeJSON(r, &req); err != nil {
 		httpx.WriteError(w, status, httpx.CodeInvalidInput, err.Error())
 		return
 	}
@@ -118,23 +117,6 @@ func (h *Handler) Claim(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httpx.WriteJSON(w, http.StatusOK, claimResponse{Medications: meds})
-}
-
-func decode(r *http.Request, v any) (int, error) {
-	dec := json.NewDecoder(r.Body)
-	dec.DisallowUnknownFields()
-	if err := dec.Decode(v); err != nil {
-		var mbe *http.MaxBytesError
-		if errors.As(err, &mbe) {
-			return http.StatusRequestEntityTooLarge, errors.New("request body too large")
-		}
-		// The decoder error names the unknown field, never a value.
-		return http.StatusBadRequest, fmt.Errorf("invalid JSON body: %v", err)
-	}
-	if dec.More() {
-		return http.StatusBadRequest, errors.New("invalid JSON body: trailing data")
-	}
-	return 0, nil
 }
 
 func validPIN(p string) bool {

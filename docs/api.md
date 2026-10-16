@@ -106,12 +106,38 @@ Response `200`: `{ "medications": [ /* Medication[] */ ] }`
 - `MOCK_AI=true`: `/api/analyze` vrací fixní odpověď podle `source`, bez volání modelu.
 - Při `MOCK_AI=true` navíc **PIN `0000` vždy vrací stejný seznam** (fixtura) i po opakovaném vyzvednutí, ať jde testovat aplikaci lékaře bez sdílení z telefonu.
 
-## 5. Zatím nerozhodnuto: interakce a rozklad onkologických režimů
+## 5. Interakce a onkologické režimy (v2.1)
 
-Zadání je chce **jen v rozhraní lékaře**. Pokud je nebude dělat core na klientovi, doplní se tyto endpointy (verze v2.1):
+Zadání je chce **jen v rozhraní lékaře**. Interakce dělá backend (rozhodnuto 2026-10-16), rozklad režimů zatím nerozhodnut.
 
-- `POST /api/interactions`: `{ "medications": [...] }` → `{ pairs[], checked_against, unchecked[] }`. Prázdné `pairs` znamená "nenalezeno ve zdroji `checked_against`", **ne** "žádné interakce".
-- `POST /api/regimens/resolve`: `{ "text": "FOLFOX" }` → `{ regimen, drugs[], source }`, `404` pokud režim není v tabulce.
+### `POST /api/interactions`
+Request: `{ "medications": Medication[] }`. Bere tvar z `analyze` i z `claim`. Neznámé pole vrací `400`, víc než 50 položek `413`, `id` musí být vyplněné a unikátní.
+
+Kontroluje se jen podle `active_substance`. Ta může být česky, latinsky i anglicky, včetně kombinací oddělených `+` nebo `/` a tvaru `"Amlodipin (amlodipinum)"` z katalogu. Položka bez `active_substance` se nekontroluje, core ji musí doplnit z katalogu.
+
+Response `200`:
+
+```json
+{
+  "pairs": [
+    {"a": "med_02", "b": "med_01", "substance_a": "Ibuprofen", "substance_b": "Warfarin", "level": "major"}
+  ],
+  "checked_against": {"name": "DDInter", "url": "https://ddinter.scbdd.com", "license": "CC BY-NC-SA 4.0", "version": "download of 2026-10-16"},
+  "unchecked": [
+    {"id": "med_04", "name": "Atacand", "reason": "not_in_source", "substances": ["Kandesartan-cilexetil"]},
+    {"id": "med_05", "name": "Neznámý lék", "reason": "no_active_substance"}
+  ],
+  "note": "Interakce jsou hledány jen ve zdroji DDInter… Nenalezení interakce neznamená, že interakce neexistuje."
+}
+```
+
+- **`pairs`:** dvojice léků (`a`, `b` jsou `id`) s interakcí v DDInter, seřazené podle závažnosti. `level` je `major` | `moderate` | `minor` | `unknown` (`unknown` znamená, že DDInter interakci uvádí, ale bez závažnosti). Látky uvnitř jednoho kombinovaného přípravku se proti sobě nekontrolují.
+- **`unchecked`:** položky, které se zkontrolovat nepodařilo. `reason` je `no_active_substance` | `not_in_source` | `partly_in_source` (kombinace, kde se našla jen část látek). V `substances` jsou ty nenalezené.
+- **Prázdné `pairs` nikdy neznamená „žádné interakce“.** UI musí vždy zobrazit `checked_against`, `note` a `unchecked`.
+- **Zdroj:** DDInter (Xiong et al., NAR 2022), licence CC BY-NC-SA 4.0 (jen nekomerčně, s uvedením zdroje). Pokryje asi 83 % látek z katalogu organizátorů. Chybí v něm třeba kandesartan, gliklazid, dabigatran, metamizol a nimesulid. DDInter dává jen závažnost, mechanismus ani doporučení ne.
+
+### `POST /api/regimens/resolve` (zatím nerozhodnuto)
+`{ "text": "FOLFOX" }` → `{ regimen, drugs[], source }`, `404` pokud režim není v tabulce.
 
 ## 6. Změny oproti původnímu návrhu
 

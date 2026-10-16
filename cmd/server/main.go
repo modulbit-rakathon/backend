@@ -15,6 +15,7 @@ import (
 	"pillgaze/internal/config"
 	"pillgaze/internal/fixtures"
 	"pillgaze/internal/httpx"
+	"pillgaze/internal/interactions"
 	"pillgaze/internal/share"
 )
 
@@ -64,6 +65,16 @@ func main() {
 	mux.Handle("POST /api/share/claim", httpx.Chain(http.HandlerFunc(sharer.Claim),
 		httpx.NewRateLimiter(30, time.Minute).Middleware(),
 		httpx.BodyLimit(1<<10),
+	))
+
+	idb, err := interactions.Load()
+	if err != nil {
+		log.Error("interactions data", "err", err)
+		os.Exit(1)
+	}
+	mux.Handle("POST /api/interactions", httpx.Chain(&interactions.Handler{DB: idb},
+		httpx.NewRateLimiter(30, time.Minute).Middleware(),
+		httpx.BodyLimit(interactions.MaxBodyBytes),
 	))
 
 	if cfg.AppAPIKey == "" {
