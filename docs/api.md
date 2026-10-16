@@ -152,7 +152,7 @@ Response `200`: `{ "medications": [ /* Medication[] */ ] }`
 
 ## 5. Interakce a onkologické režimy (v2.1)
 
-Zadání je chce **jen v rozhraní lékaře**. Interakce dělá backend (rozhodnuto 2026-10-16), rozklad režimů zatím nerozhodnut.
+Zadání je chce **jen v rozhraní lékaře**. Interakce i rozklad režimů dělá backend (rozhodnuto 2026-10-16).
 
 ### `POST /api/interactions`
 Request: `{ "medications": Medication[] }`. Bere tvar z `analyze` i z `claim`. Neznámé pole vrací `400`, víc než 50 položek `413`, `id` musí být vyplněné a unikátní.
@@ -180,8 +180,30 @@ Response `200`:
 - **Prázdné `pairs` nikdy neznamená „žádné interakce“.** UI musí vždy zobrazit `checked_against`, `note` a `unchecked`.
 - **Zdroj:** DDInter (Xiong et al., NAR 2022), licence CC BY-NC-SA 4.0 (jen nekomerčně, s uvedením zdroje). Pokryje asi 83 % látek z katalogu organizátorů. Chybí v něm třeba kandesartan, gliklazid, dabigatran, metamizol a nimesulid. DDInter dává jen závažnost, mechanismus ani doporučení ne.
 
-### `POST /api/regimens/resolve` (zatím nerozhodnuto)
-`{ "text": "FOLFOX" }` → `{ regimen, drugs[], source }`, `404` pokud režim není v tabulce.
+### `POST /api/regimens/resolve`
+Request: `{ "text": "FOLFOX" }`, typicky `name` položky s `kind = regimen`. Max 100 znaků, neznámé pole vrací `400`.
+
+Hledá se **jen přesná zkratka**. Velikost písmen, mezery a interpunkce se ignorují (`R-CHOP` = `rchop` = `R CHOP`), známé varianty jsou v tabulce (`mFOLFOX6`, `XELOX`, `CyBorD` …). Podobné zkratky se nehádají: `FOLFOXX` vrací `404`.
+
+Response `200`:
+
+```json
+{
+  "query": "EC",
+  "regimens": [
+    {"name": "EC", "indication": "karcinom prsu", "drugs": ["Epirubicin", "Cyclophosphamide"]},
+    {"name": "EC", "indication": "malobuněčný karcinom plic", "drugs": ["Etoposide", "Carboplatin"]}
+  ],
+  "source": {"name": "PillGaze tabulka režimů podle HemOnc.org", "url": "https://hemonc.org", "version": "2026-10-16"},
+  "note": "Složení režimu je podle zkratky z tabulky, ne z dokumentace pacienta…"
+}
+```
+
+- **Víc položek v `regimens`** znamená, že zkratka není jednoznačná (`EC`, `TC`, `AC-T`, `THP`, `7+3`). Variantu musí vybrat lékař, frontend je nesmí sloučit.
+- **`drugs`** obsahuje jen protinádorová léčiva v anglickém INN, bez podpůrné léčby (mesna, antiemetika) a bez dávkování. Všechny názvy jsou v DDInter.
+- **Interakce:** frontend vybranou variantu pošle do `/api/interactions` jako `active_substance` položky režimu, látky spojené `" + "` (např. `"Fluorouracil + Leucovorin + Oxaliplatin"`).
+- `404 not_found`: zkratka v tabulce není. UI to má ukázat jako „režim nerozpoznán“, ne jako „bez léků“.
+- **Zdroj:** ručně sestavená tabulka asi 80 běžných režimů (`internal/regimens/regimens.csv`), složení podle HemOnc.org. Web HemOnc je za Cloudflare a nejde automaticky stahovat. Úplná data jsou jako HemOncKB (CC BY subset) na Harvard Dataverse, `doi:10.7910/DVN/9CY9C6`, ke stažení po vyplnění guestbooku.
 
 ## 6. Změny oproti původnímu návrhu
 
@@ -203,4 +225,4 @@ Response `200`:
 
 - ~~**Formát vstupu core.**~~ Od v3 nerelevantní, párování a slučování dělá backend.
 - **Aplikace lékaře je povinný výstup** zadání. Doporučení: route `/doctor` ve stejné Vite appce. Je potřeba určit vlastníka.
-- Kdo dělá interakce a rozklad režimů (sekce 5)? Ověřit u mentora Rusinka, že patří jen do rozhraní lékaře.
+- Interakce i rozklad režimů dělá backend (sekce 5). Ověřit u mentora Rusinka, že patří jen do rozhraní lékaře.

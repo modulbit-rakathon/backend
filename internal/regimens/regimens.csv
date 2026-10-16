@@ -1,0 +1,79 @@
+name,aliases,indication,drugs
+FOLFOX,FOLFOX4|FOLFOX6|mFOLFOX6|mFOLFOX7,kolorektální a GI karcinomy,Fluorouracil|Leucovorin|Oxaliplatin
+FOLFIRI,mFOLFIRI,kolorektální karcinom,Fluorouracil|Leucovorin|Irinotecan
+FOLFOXIRI,FOLFIRINOX|mFOLFIRINOX,kolorektální karcinom a karcinom pankreatu,Fluorouracil|Leucovorin|Oxaliplatin|Irinotecan
+CAPOX,XELOX|CAPEOX,kolorektální a GI karcinomy,Capecitabine|Oxaliplatin
+CAPIRI,XELIRI,kolorektální karcinom,Capecitabine|Irinotecan
+FLOT,,karcinom žaludku a gastroezofageální junkce,Fluorouracil|Leucovorin|Oxaliplatin|Docetaxel
+ECF,,karcinom žaludku,Epirubicin|Cisplatin|Fluorouracil
+ECX,,karcinom žaludku,Epirubicin|Cisplatin|Capecitabine
+EOX,,karcinom žaludku,Epirubicin|Oxaliplatin|Capecitabine
+XP,CX,karcinom žaludku,Capecitabine|Cisplatin
+CROSS,,karcinom jícnu (s radioterapií),Carboplatin|Paclitaxel
+GemCap,GEMCAP,karcinom pankreatu,Gemcitabine|Capecitabine
+GnP,Gem-Nab|GemNab,karcinom pankreatu,Gemcitabine|Paclitaxel
+GC,GemCis|Gem-Cis|CisGem,karcinom močového měchýře a žlučových cest,Gemcitabine|Cisplatin
+GemCarbo,Gem-Carbo|CarboGem,karcinom plic,Gemcitabine|Carboplatin
+PemCis,Pem-Cis|CisPem,nemalobuněčný karcinom plic,Pemetrexed|Cisplatin
+PemCarbo,Pem-Carbo|CarboPem,nemalobuněčný karcinom plic,Pemetrexed|Carboplatin
+CarboTaxol,Carbo-Taxol|CarboPac|TC,karcinom ovaria a plic,Carboplatin|Paclitaxel
+AC,,karcinom prsu,Doxorubicin|Cyclophosphamide
+EC,,karcinom prsu,Epirubicin|Cyclophosphamide
+EC,,malobuněčný karcinom plic,Etoposide|Carboplatin
+AC-T,AC→T|AC-P|ddAC-T|ddAC-P,karcinom prsu (T = paklitaxel),Doxorubicin|Cyclophosphamide|Paclitaxel
+AC-T,AC→T|AC-D|AC-Doc,karcinom prsu (T = docetaxel),Doxorubicin|Cyclophosphamide|Docetaxel
+EC-T,EC→T|EC-P,karcinom prsu (T = paklitaxel),Epirubicin|Cyclophosphamide|Paclitaxel
+EC-T,EC→T|EC-D|EC-Doc,karcinom prsu (T = docetaxel),Epirubicin|Cyclophosphamide|Docetaxel
+TC,DC,karcinom prsu,Docetaxel|Cyclophosphamide
+TCH,,karcinom prsu HER2+,Docetaxel|Carboplatin|Trastuzumab
+TCHP,,karcinom prsu HER2+,Docetaxel|Carboplatin|Trastuzumab|Pertuzumab
+THP,,karcinom prsu HER2+ (T = docetaxel),Docetaxel|Trastuzumab|Pertuzumab
+THP,,karcinom prsu HER2+ (T = paklitaxel),Paclitaxel|Trastuzumab|Pertuzumab
+CMF,,karcinom prsu,Cyclophosphamide|Methotrexate|Fluorouracil
+FEC,FEC100|FEC75|FEC90,karcinom prsu,Fluorouracil|Epirubicin|Cyclophosphamide
+FAC,CAF,karcinom prsu,Fluorouracil|Doxorubicin|Cyclophosphamide
+TAC,,karcinom prsu,Docetaxel|Doxorubicin|Cyclophosphamide
+CHOP,CHOP-14|CHOP-21,lymfomy,Cyclophosphamide|Doxorubicin|Vincristine|Prednisone
+R-CHOP,RCHOP|R-CHOP-14|R-CHOP-21,lymfomy,Rituximab|Cyclophosphamide|Doxorubicin|Vincristine|Prednisone
+Pola-R-CHP,PolaRCHP,difuzní velkobuněčný B-lymfom,Polatuzumab vedotin|Rituximab|Cyclophosphamide|Doxorubicin|Prednisone
+CVP,COP,lymfomy,Cyclophosphamide|Vincristine|Prednisone
+R-CVP,R-COP,lymfomy,Rituximab|Cyclophosphamide|Vincristine|Prednisone
+DA-EPOCH-R,EPOCH-R|R-EPOCH|R-DA-EPOCH,lymfomy,Etoposide|Prednisone|Vincristine|Cyclophosphamide|Doxorubicin|Rituximab
+ABVD,,Hodgkinův lymfom,Doxorubicin|Bleomycin|Vinblastine|Dacarbazine
+BEACOPP,eBEACOPP|BEACOPPesc|BEACOPP-esk,Hodgkinův lymfom,Bleomycin|Etoposide|Doxorubicin|Cyclophosphamide|Vincristine|Procarbazine|Prednisone
+BR,Benda-R|BendaR|R-Benda,lymfomy a CLL,Bendamustine|Rituximab
+ICE,,lymfomy (záchranná léčba),Ifosfamide|Carboplatin|Etoposide
+R-ICE,RICE,lymfomy (záchranná léčba),Rituximab|Ifosfamide|Carboplatin|Etoposide
+DHAP,,lymfomy (záchranná léčba),Dexamethasone|Cytarabine|Cisplatin
+R-DHAP,RDHAP,lymfomy (záchranná léčba),Rituximab|Dexamethasone|Cytarabine|Cisplatin
+R-GemOx,GemOx-R|R-GEMOX,lymfomy (záchranná léčba),Rituximab|Gemcitabine|Oxaliplatin
+BEAM,,vysokodávkovaná léčba před transplantací,Carmustine|Etoposide|Cytarabine|Melphalan
+FCR,,chronická lymfocytární leukémie,Fludarabine|Cyclophosphamide|Rituximab
+Hyper-CVAD,HyperCVAD,akutní lymfoblastická leukémie a lymfomy,Cyclophosphamide|Vincristine|Doxorubicin|Dexamethasone|Methotrexate|Cytarabine
+7+3,3+7,akutní myeloidní leukémie (s daunorubicinem),Cytarabine|Daunorubicin
+7+3,3+7,akutní myeloidní leukémie (s idarubicinem),Cytarabine|Idarubicin
+FLAG-Ida,FLAG-IDA|IDA-FLAG,akutní myeloidní leukémie,Fludarabine|Cytarabine|Idarubicin|Filgrastim
+ATRA+ATO,ATO+ATRA,akutní promyelocytární leukémie,Tretinoin|Arsenic trioxide
+VRd,RVD|VRD|RVd,mnohočetný myelom,Bortezomib|Lenalidomide|Dexamethasone
+VCd,CyBorD|VCD|CyBorDex,mnohočetný myelom,Bortezomib|Cyclophosphamide|Dexamethasone
+VTd,VTD,mnohočetný myelom,Bortezomib|Thalidomide|Dexamethasone
+Rd,Ld|RD|Len-Dex,mnohočetný myelom,Lenalidomide|Dexamethasone
+DRd,Dara-Rd|DaraRd,mnohočetný myelom,Daratumumab|Lenalidomide|Dexamethasone
+D-VRd,DVRd|Dara-VRd,mnohočetný myelom,Daratumumab|Bortezomib|Lenalidomide|Dexamethasone
+D-VTd,DVTd|Dara-VTd,mnohočetný myelom,Daratumumab|Bortezomib|Thalidomide|Dexamethasone
+KRd,,mnohočetný myelom,Carfilzomib|Lenalidomide|Dexamethasone
+Kd,,mnohočetný myelom,Carfilzomib|Dexamethasone
+VMP,,mnohočetný myelom,Bortezomib|Melphalan|Prednisone
+Pd,Pom-Dex|PomDex,mnohočetný myelom,Pomalidomide|Dexamethasone
+BEP,,nádory zárodečných buněk,Bleomycin|Etoposide|Cisplatin
+EP,PE|EtoCis,nádory zárodečných buněk a malobuněčný karcinom plic,Etoposide|Cisplatin
+VIP,,nádory zárodečných buněk,Etoposide|Ifosfamide|Cisplatin
+TIP,,nádory zárodečných buněk,Paclitaxel|Ifosfamide|Cisplatin
+TPF,,karcinomy hlavy a krku,Docetaxel|Cisplatin|Fluorouracil
+PF,CF|CisFU,karcinomy hlavy a krku,Cisplatin|Fluorouracil
+MVAC,ddMVAC|dd-MVAC,karcinom močového měchýře,Methotrexate|Vinblastine|Doxorubicin|Cisplatin
+PCV,,gliomy,Procarbazine|Lomustine|Vincristine
+MAP,,osteosarkom,Methotrexate|Doxorubicin|Cisplatin
+VAC,,rhabdomyosarkom,Vincristine|Dactinomycin|Cyclophosphamide
+VDC/IE,VDC-IE,Ewingův sarkom,Vincristine|Doxorubicin|Cyclophosphamide|Ifosfamide|Etoposide
+Ipi-Nivo,Nivo-Ipi|IpiNivo|NivoIpi,melanom a karcinom ledviny,Ipilimumab|Nivolumab

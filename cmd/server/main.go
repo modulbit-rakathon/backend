@@ -17,6 +17,7 @@ import (
 	"pillgaze/internal/fixtures"
 	"pillgaze/internal/httpx"
 	"pillgaze/internal/interactions"
+	"pillgaze/internal/regimens"
 	"pillgaze/internal/share"
 )
 
@@ -85,6 +86,16 @@ func main() {
 	mux.Handle("POST /api/interactions", httpx.Chain(&interactions.Handler{DB: idb},
 		httpx.NewRateLimiter(30, time.Minute).Middleware(),
 		httpx.BodyLimit(interactions.MaxBodyBytes),
+	))
+
+	regs, err := regimens.Load()
+	if err != nil {
+		log.Error("regimens data", "err", err)
+		os.Exit(1)
+	}
+	mux.Handle("POST /api/regimens/resolve", httpx.Chain(&regimens.Handler{Table: regs},
+		httpx.NewRateLimiter(60, time.Minute).Middleware(),
+		httpx.BodyLimit(regimens.MaxBodyBytes),
 	))
 
 	if cfg.AppAPIKey == "" {
