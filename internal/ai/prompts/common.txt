@@ -9,3 +9,4 @@ Pravidla:
 6. "unreadable_items": počet položek (léků), které jsou na fotce vidět, ale nejdou přečíst ani jejich název. Takové položky do "medications" nedávej.
 7. Pokud na fotce žádný lék není, vrať prázdné "medications" a "unreadable_items": 0.
 8. "box_match" je null, pokud ti zadání níže neřekne jinak.
+9. Přeškrtnutý text (čarou, klikyhákem, začerněním) neplatí, i když ho dokážeš přečíst. Celou přeškrtnutou položku do "medications" nedávej a nepočítej ji ani do "unreadable_items". Pokud je přeškrtnutý jen jeden údaj a vedle něj je napsaný nový (např. přeškrtnuté "1-0-1" a vedle "1-0-0"), vrať jen ten nový. Pokud je údaj přeškrtnutý a nový chybí, je null a název pole přidej do "uncertain_fields".
