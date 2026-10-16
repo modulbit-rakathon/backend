@@ -1,29 +1,36 @@
-// Package analyze implements POST /api/analyze.
+// Package analyze implements POST /api/analyze: read every photo, match the
+// items to the catalogue and merge notes with boxes into one list.
 package analyze
 
 import (
 	"context"
 	"crypto/rand"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"mime"
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 
 	"pillgaze/internal/ai"
+	"pillgaze/internal/catalog"
 	"pillgaze/internal/fixtures"
 	"pillgaze/internal/httpx"
 	"pillgaze/internal/model"
 )
 
 const (
-	MaxImages     = 6
-	MaxImageBytes = 10 << 20
+	MaxImages     = 10
+	MaxImageBytes = 15 << 20
 	// MaxBodyBytes leaves room for multipart framing around the images.
 	MaxBodyBytes = MaxImageBytes + 1<<20
 )
+
+// Form fields: each is repeatable and holds photos of that kind.
+var sources = []string{"note", "box", "regimen"}
 
 // Extractor reads medications from one image. *ai.Client implements it.
 type Extractor interface {
@@ -31,20 +38,20 @@ type Extractor interface {
 }
 
 type Handler struct {
-	AI    Extractor // nil in mock mode
-	Model string
-	Mock  bool
+	AI      Extractor // nil in mock mode
+	Model   string
+	Mock    bool
+	Catalog *catalog.Catalog
 }
 
-var validSources = map[string]bool{"box": true, "note": true, "regimen": true}
-
 type image struct {
-	mime string
-	data []byte
+	source string
+	mime   string
+	data   []byte
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	source, images, status, err := readForm(r)
+	images, status, err := readForm(r)
 	if err != nil {
 		code := httpx.CodeInvalidInput
 		switch status {
@@ -58,13 +65,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	httpx.Info(r.Context()).SetImages(len(images))
 
-	if h.Mock {
-		resp, _ := fixtures.Analyze(source)
-		httpx.WriteJSON(w, http.StatusOK, resp)
-		return
-	}
-
-	resp, err := h.extractAll(r.Context(), source, images)
+	results, err := h.extractAll(r.Context(), images)
 	if err != nil {
 		slog.Warn("analyze failed", "request_id", httpx.RequestID(r.Context()), "err", err)
 	}
@@ -76,25 +77,38 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, http.StatusBadGateway, httpx.CodeModelError, "model call failed")
 		return
 	}
+
+	resp := h.build(images, results)
 	if len(resp.Medications) == 0 && resp.UnreadableItems == 0 {
-		httpx.WriteError(w, http.StatusUnprocessableEntity, httpx.CodeNothingFound, "no medications found in the photo")
+		httpx.WriteError(w, http.StatusUnprocessableEntity, httpx.CodeNothingFound, "no medications found in the photos")
 		return
 	}
 	httpx.WriteJSON(w, http.StatusOK, resp)
 }
 
-// extractAll calls the model once per image in parallel and merges the
-// results in image order. The first failure cancels the remaining calls.
-func (h *Handler) extractAll(ctx context.Context, source string, images []image) (model.AnalyzeResponse, error) {
+// extractAll calls the model once per image in parallel. The first failure
+// cancels the remaining calls. In mock mode every image of a kind returns
+// that kind's fixture, once per kind.
+func (h *Handler) extractAll(ctx context.Context, images []image) ([]ai.Result, error) {
+	results := make([]ai.Result, len(images))
+	if h.Mock {
+		done := map[string]bool{}
+		for i, img := range images {
+			if !done[img.source] {
+				results[i] = fixtures.Read(img.source)
+				done[img.source] = true
+			}
+		}
+		return results, nil
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-
-	results := make([]ai.Result, len(images))
 	errs := make([]error, len(images))
 	var wg sync.WaitGroup
 	for i, img := range images {
 		wg.Go(func() {
-			results[i], errs[i] = h.AI.Extract(ctx, h.Model, source, img.mime, img.data)
+			results[i], errs[i] = h.AI.Extract(ctx, h.Model, img.source, img.mime, img.data)
 			if errs[i] != nil {
 				cancel()
 			}
@@ -106,38 +120,55 @@ func (h *Handler) extractAll(ctx context.Context, source string, images []image)
 	for _, res := range results {
 		info.AddUsage(h.Model, res.PromptTokens, res.CompletionTokens)
 	}
-	if err := firstError(errs); err != nil {
-		return model.AnalyzeResponse{}, err
-	}
+	return results, firstError(errs)
+}
 
-	kind, medSource := model.KindDrug, source
-	if source == "regimen" {
-		// Regimen names are read from a note or report.
-		kind, medSource = model.KindRegimen, model.SourceNote
-	}
+// build turns model output into the response: ids, kinds and sources, a
+// catalogue match per drug, active substance from the catalogue where the
+// photo had none, then notes and boxes merged.
+func (h *Handler) build(images []image, results []ai.Result) model.AnalyzeResponse {
 	resp := model.AnalyzeResponse{Medications: []model.Medication{}}
-	for _, res := range results {
+	var meds []model.Medication
+	for i, res := range results {
+		source := images[i].source
 		resp.UnreadableItems += res.UnreadableItems
 		for _, it := range res.Items {
 			m := model.Medication{
 				ID:              newID(),
-				Kind:            kind,
+				Kind:            model.KindDrug,
 				Name:            it.Name,
 				ActiveSubstance: it.ActiveSubstance,
 				Strength:        it.Strength,
 				Form:            it.Form,
 				Frequency:       it.Frequency,
 				Amount:          it.Amount,
-				Source:          medSource,
+				Source:          source,
 				UncertainFields: it.UncertainFields,
 			}
-			if source == "note" {
-				m.NoteStyle = it.NoteStyle
+			if m.UncertainFields == nil {
+				m.UncertainFields = []string{}
 			}
-			resp.Medications = append(resp.Medications, m)
+			switch source {
+			case "note":
+				m.NoteStyle = it.NoteStyle
+			case "regimen":
+				// Regimen names are read from a note or report.
+				m.Kind, m.Source = model.KindRegimen, model.SourceNote
+			}
+			if m.Kind == model.KindDrug {
+				m.Catalog = h.Catalog.Match(m.Name, m.Strength, slices.Contains(m.UncertainFields, "name"))
+				if m.Catalog.Status == catalog.StatusMatched && m.ActiveSubstance == nil {
+					as := m.Catalog.Product.ActiveSubstance
+					m.ActiveSubstance = &as
+				}
+			}
+			meds = append(meds, m)
 		}
 	}
-	return resp, nil
+	if len(meds) > 0 {
+		resp.Medications = h.Catalog.Merge(meds)
+	}
+	return resp
 }
 
 // firstError prefers a real failure over the context.Canceled that sibling
@@ -158,14 +189,14 @@ func firstError(errs []error) error {
 
 // readForm streams the multipart body into memory; nothing touches disk
 // (ParseMultipartForm would spill large files to temp files).
-func readForm(r *http.Request) (source string, images []image, status int, err error) {
+func readForm(r *http.Request) (images []image, status int, err error) {
 	mt, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if mt != "multipart/form-data" {
-		return "", nil, http.StatusBadRequest, errors.New("expected multipart/form-data")
+		return nil, http.StatusBadRequest, errors.New("expected multipart/form-data")
 	}
 	mr, err := r.MultipartReader()
 	if err != nil {
-		return "", nil, http.StatusBadRequest, errors.New("malformed multipart body")
+		return nil, http.StatusBadRequest, errors.New("malformed multipart body")
 	}
 
 	total := 0
@@ -175,47 +206,40 @@ func readForm(r *http.Request) (source string, images []image, status int, err e
 			break
 		}
 		if err != nil {
-			return "", nil, bodyErrStatus(err), errors.New("malformed multipart body")
+			return nil, bodyErrStatus(err), errors.New("malformed multipart body")
 		}
-		switch part.FormName() {
-		case "source":
-			b, err := io.ReadAll(io.LimitReader(part, 32))
-			if err != nil {
-				return "", nil, bodyErrStatus(err), errors.New("cannot read source")
-			}
-			source = strings.TrimSpace(string(b))
-		case "image":
+		field := part.FormName()
+		switch {
+		case field == "source" || field == "image":
+			return nil, http.StatusBadRequest, errors.New(`the "source" and "image" fields were replaced: send photos as "note", "box" or "regimen" fields`)
+		case slices.Contains(sources, field):
 			if len(images) == MaxImages {
-				return "", nil, http.StatusRequestEntityTooLarge, errors.New("at most 6 images")
+				return nil, http.StatusRequestEntityTooLarge, fmt.Errorf("at most %d images", MaxImages)
 			}
 			data, err := io.ReadAll(io.LimitReader(part, int64(MaxImageBytes-total+1)))
 			if err != nil {
-				return "", nil, bodyErrStatus(err), errors.New("cannot read image")
+				return nil, bodyErrStatus(err), errors.New("cannot read image")
 			}
 			total += len(data)
 			if total > MaxImageBytes {
-				return "", nil, http.StatusRequestEntityTooLarge, errors.New("images exceed 10 MB in total")
+				return nil, http.StatusRequestEntityTooLarge, fmt.Errorf("images exceed %d MB in total", MaxImageBytes>>20)
 			}
 			// Decide by content, not by the part's Content-Type header.
 			ct := http.DetectContentType(data)
 			if ct != "image/jpeg" && ct != "image/png" {
-				return "", nil, http.StatusUnsupportedMediaType, errors.New("images must be JPEG or PNG")
+				return nil, http.StatusUnsupportedMediaType, errors.New("images must be JPEG or PNG")
 			}
-			images = append(images, image{mime: ct, data: data})
+			images = append(images, image{source: field, mime: ct, data: data})
 		default:
 			if _, err := io.Copy(io.Discard, part); err != nil {
-				return "", nil, bodyErrStatus(err), errors.New("malformed multipart body")
+				return nil, bodyErrStatus(err), errors.New("malformed multipart body")
 			}
 		}
 	}
-
-	if !validSources[source] {
-		return "", nil, http.StatusBadRequest, errors.New("source must be box, note or regimen")
-	}
 	if len(images) == 0 {
-		return "", nil, http.StatusBadRequest, errors.New("at least one image is required")
+		return nil, http.StatusBadRequest, errors.New(`at least one image is required in a "note", "box" or "regimen" field`)
 	}
-	return source, images, 0, nil
+	return images, 0, nil
 }
 
 func bodyErrStatus(err error) int {

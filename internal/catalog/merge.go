@@ -25,13 +25,17 @@ func (c *Catalog) Merge(items []model.Medication) []model.Medication {
 		sources map[string]bool
 	}
 	var groups []*group
-	var out []any // *group or model.Medication, in first-seen order
+	var out []any     // *group or model.Medication, in first-seen order
+	var pending []int // out positions of items that may still join a group
 
 	for _, it := range items {
 		p := c.matched(it)
 		if p == nil {
 			if len(it.Sources) == 0 {
 				it.Sources = []string{it.Source}
+			}
+			if c.sameBrandOnly(it) != "" {
+				pending = append(pending, len(out))
 			}
 			out = append(out, it)
 			continue
@@ -57,6 +61,23 @@ func (c *Catalog) Merge(items []model.Medication) []model.Medication {
 		target.sources[it.Source] = true
 	}
 
+	// A brand read with certainty but at a strength the catalogue lacks
+	// ("Warfarin Orion 3 mg" on the note, 5 mg on the box) joins that brand's
+	// group from another source, so the strength shows as a conflict. It
+	// never starts a group of its own.
+	for _, i := range pending {
+		it := out[i].(model.Medication)
+		fam := c.sameBrandOnly(it)
+		for _, g := range groups {
+			if g.family == fam && !g.sources[it.Source] {
+				g.members = append(g.members, it)
+				g.sources[it.Source] = true
+				out[i] = nil
+				break
+			}
+		}
+	}
+
 	merged := make([]model.Medication, 0, len(out))
 	for _, o := range out {
 		switch v := o.(type) {
@@ -67,6 +88,21 @@ func (c *Catalog) Merge(items []model.Medication) []model.Medication {
 		}
 	}
 	return merged
+}
+
+// sameBrandOnly returns the brand family of an unmatched item whose name was
+// read with certainty and names one brand, with only the strength unknown
+// to the catalogue; "" otherwise.
+func (c *Catalog) sameBrandOnly(it model.Medication) string {
+	if it.Kind != model.KindDrug || it.Catalog == nil || it.Catalog.Status != StatusNeedsConfirmation ||
+		slices.Contains(it.UncertainFields, "name") || len(it.Catalog.Candidates) == 0 {
+		return ""
+	}
+	top := it.Catalog.Candidates[0]
+	if top.By != ByName {
+		return ""
+	}
+	return familyKey(top.Name)
 }
 
 func (c *Catalog) matched(it model.Medication) *Product {
@@ -145,6 +181,9 @@ func (c *Catalog) join(ms []model.Medication) model.Medication {
 
 	// Different brands joined by substance: show both names.
 	conflict(&out, ms, "name", func(m model.Medication) (string, string) {
+		if m.Catalog.Product == nil {
+			return m.Name, m.Catalog.Candidates[0].Name
+		}
 		return m.Name, m.Catalog.Product.Name
 	})
 	conflict(&out, ms, "strength", func(m model.Medication) (string, string) {

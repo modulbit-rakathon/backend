@@ -138,3 +138,25 @@ func TestMergeKeepsUnsureAndSameSourceStrengths(t *testing.T) {
 		}
 	}
 }
+
+func TestMergeUnknownStrengthJoinsOtherSource(t *testing.T) {
+	c := load(t)
+	got := c.Merge([]model.Medication{
+		// 3 mg is not in the catalogue, but the brand is read with certainty.
+		item(t, "n1", "note", "handwritten", "Warfarin Orion", sp("3 mg"), sp("0-0-1")),
+		item(t, "b1", "box", "", "WARFARIN ORION 5 mg", sp("5 mg"), nil),
+		// Unsure name: stays apart.
+		item(t, "n2", "note", "handwritten", "Agen", sp("7 mg"), nil, "name"),
+		item(t, "b2", "box", "", "AGEN 5", sp("5 mg"), nil),
+	})
+	if len(got) != 3 {
+		t.Fatalf("got %d items: %+v", len(got), got)
+	}
+	w := byID(got, "b1")
+	if w == nil || !slices.Equal(w.Sources, []string{"box", "note"}) || len(w.Conflicts) != 1 || w.Conflicts[0].Field != "strength" {
+		t.Fatalf("warfarin: %+v", w)
+	}
+	if byID(got, "n2") == nil {
+		t.Error("unsure Agen joined the box")
+	}
+}

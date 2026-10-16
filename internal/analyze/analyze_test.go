@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"pillgaze/internal/ai"
+	"pillgaze/internal/catalog"
 	"pillgaze/internal/httpx"
 	"pillgaze/internal/model"
 )
@@ -84,16 +85,26 @@ func form(t *testing.T, parts ...part) *http.Request {
 	return r
 }
 
-func src(s string) part { return part{name: "source", data: []byte(s)} }
-func img(b []byte) part { return part{name: "image", filename: "a.jpg", data: b} }
+func photo(field string, b []byte) part { return part{name: field, filename: "a.jpg", data: b} }
+func note(b []byte) part                { return photo("note", b) }
+func box(b []byte) part                 { return photo("box", b) }
+
 func serve(h http.Handler, r *http.Request) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	httpx.BodyLimit(MaxBodyBytes)(h).ServeHTTP(w, r)
 	return w
 }
 
+var testCatalog = func() *catalog.Catalog {
+	c, err := catalog.Load()
+	if err != nil {
+		panic(err)
+	}
+	return c
+}()
+
 func realHandler(srv *httptest.Server) *Handler {
-	return &Handler{AI: ai.New(srv.URL, "k"), Model: "model-a"}
+	return &Handler{AI: ai.New(srv.URL, "k"), Model: "model-a", Catalog: testCatalog}
 }
 
 func errCode(t *testing.T, w *httptest.ResponseRecorder) string {
@@ -107,18 +118,47 @@ func errCode(t *testing.T, w *httptest.ResponseRecorder) string {
 	return e.Error.Code
 }
 
-func TestAnalyzeSuccess(t *testing.T) {
-	srv, calls := fakeAI(t, content(goodContent), content(goodContent))
-	w := serve(realHandler(srv), form(t, src("note"), img(jpeg), img(jpeg)))
-
+func decode(t *testing.T, w *httptest.ResponseRecorder) model.AnalyzeResponse {
+	t.Helper()
 	if w.Code != 200 {
 		t.Fatalf("status %d: %s", w.Code, w.Body)
 	}
+	var resp model.AnalyzeResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	return resp
+}
+
+// bySource answers with the reply for the photo kind named in the prompt,
+// since calls for different photos run in parallel.
+func bySource(t *testing.T, replies map[string]string) *httptest.Server {
+	t.Helper()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Messages []struct {
+				Content any `json:"content"`
+			} `json:"messages"`
+		}
+		json.NewDecoder(r.Body).Decode(&body)
+		prompt, _ := body.Messages[0].Content.(string)
+		src := "note"
+		if strings.Contains(prompt, "krabičk") {
+			src = "box"
+		}
+		content(replies[src])(w)
+	}))
+	t.Cleanup(srv.Close)
+	return srv
+}
+
+func TestAnalyzeSuccess(t *testing.T) {
+	srv, calls := fakeAI(t, content(goodContent), content(goodContent))
+	resp := decode(t, serve(realHandler(srv), form(t, note(jpeg), note(jpeg))))
+
 	if calls.Load() != 2 {
 		t.Errorf("calls = %d, want one per image", calls.Load())
 	}
-	var resp model.AnalyzeResponse
-	json.Unmarshal(w.Body.Bytes(), &resp)
 	if len(resp.Medications) != 2 || resp.UnreadableItems != 2 {
 		t.Fatalf("got %d meds, %d unreadable", len(resp.Medications), resp.UnreadableItems)
 	}
@@ -126,21 +166,50 @@ func TestAnalyzeSuccess(t *testing.T) {
 	if !strings.HasPrefix(m.ID, "med_") || m.ID == resp.Medications[1].ID {
 		t.Errorf("ids %q %q", m.ID, resp.Medications[1].ID)
 	}
-	// The typo must survive untouched.
+	// The typo survives untouched; the catalogue only offers candidates.
 	if m.Name != "Prestarim Neo" || m.Kind != "drug" || m.Source != "note" {
 		t.Errorf("med = %+v", m)
 	}
 	if m.NoteStyle == nil || *m.NoteStyle != "handwritten" || m.ActiveSubstance != nil {
 		t.Errorf("note_style/active_substance = %v/%v", m.NoteStyle, m.ActiveSubstance)
 	}
-	if !strings.Contains(w.Body.String(), `"active_substance":null`) {
-		t.Errorf("null fields must be present: %s", w.Body)
+	if m.Catalog == nil || m.Catalog.Status != catalog.StatusNeedsConfirmation || m.Catalog.Candidates[0].Name != "PRESTARIUM NEO" {
+		t.Errorf("catalog = %+v", m.Catalog)
+	}
+}
+
+const notePrestarium = `{"medications":[
+	{"name":"Prestarium Neo","active_substance":null,"strength":"5 mg","form":null,"frequency":"1-0-0","amount":"1 tbl","note_style":"handwritten","uncertain_fields":[]},
+	{"name":"WARFARIN ORION","active_substance":null,"strength":"5 mg","form":null,"frequency":"0-0-1","amount":null,"note_style":"printed","uncertain_fields":[]}],
+	"unreadable_items":0}`
+
+const boxPrestarium = `{"medications":[
+	{"name":"Prestarium Neo 5 mg","active_substance":"perindoprilum argininum","strength":"5 mg","form":"potahované tablety","frequency":null,"amount":null,"note_style":null,"uncertain_fields":[]}],
+	"unreadable_items":0}`
+
+func TestAnalyzeNoteAndBox(t *testing.T) {
+	srv := bySource(t, map[string]string{"note": notePrestarium, "box": boxPrestarium})
+	resp := decode(t, serve(realHandler(srv), form(t, note(jpeg), box(jpeg))))
+	if len(resp.Medications) != 2 {
+		t.Fatalf("got %d items, want 2 (prestarium merged): %s", len(resp.Medications), mustJSON(resp))
+	}
+	p := resp.Medications[0]
+	if p.Source != "box" || strings.Join(p.Sources, ",") != "box,note" || p.Frequency == nil || *p.Frequency != "1-0-0" {
+		t.Errorf("merged prestarium: %s", mustJSON(p))
+	}
+	if p.Catalog.Status != catalog.StatusMatched || p.NoteStyle == nil {
+		t.Errorf("prestarium catalog/note_style: %s", mustJSON(p))
+	}
+	// Warfarin is only on the note: its active substance comes from the catalogue.
+	w := resp.Medications[1]
+	if w.ActiveSubstance == nil || !strings.Contains(*w.ActiveSubstance, "warfarin") {
+		t.Errorf("warfarin active_substance: %s", mustJSON(w))
 	}
 }
 
 func TestAnalyzeBoxDropsNoteStyle(t *testing.T) {
 	srv, _ := fakeAI(t, content(goodContent))
-	w := serve(realHandler(srv), form(t, src("box"), img(jpeg)))
+	w := serve(realHandler(srv), form(t, box(jpeg)))
 	if w.Code != 200 || strings.Contains(w.Body.String(), "note_style") {
 		t.Fatalf("status %d, body %s", w.Code, w.Body)
 	}
@@ -148,17 +217,16 @@ func TestAnalyzeBoxDropsNoteStyle(t *testing.T) {
 
 func TestAnalyzeRegimen(t *testing.T) {
 	srv, _ := fakeAI(t, content(`{"medications":[{"name":"FOLFOX","active_substance":null,"strength":null,"form":null,"frequency":null,"amount":null,"note_style":null,"uncertain_fields":[]}],"unreadable_items":0}`))
-	w := serve(realHandler(srv), form(t, src("regimen"), img(jpeg)))
-	var resp model.AnalyzeResponse
-	json.Unmarshal(w.Body.Bytes(), &resp)
-	if w.Code != 200 || resp.Medications[0].Kind != "regimen" || resp.Medications[0].Source != "note" {
-		t.Fatalf("status %d, body %s", w.Code, w.Body)
+	resp := decode(t, serve(realHandler(srv), form(t, photo("regimen", jpeg))))
+	m := resp.Medications[0]
+	if m.Kind != "regimen" || m.Source != "note" || m.Catalog != nil {
+		t.Fatalf("regimen: %s", mustJSON(m))
 	}
 }
 
 func TestAnalyzeRetryInvalidJSON(t *testing.T) {
 	srv, calls := fakeAI(t, content(`{"medications": [`), content(goodContent))
-	w := serve(realHandler(srv), form(t, src("box"), img(jpeg)))
+	w := serve(realHandler(srv), form(t, box(jpeg)))
 	if w.Code != 200 || calls.Load() != 2 {
 		t.Fatalf("status %d, calls %d", w.Code, calls.Load())
 	}
@@ -166,7 +234,7 @@ func TestAnalyzeRetryInvalidJSON(t *testing.T) {
 
 func TestAnalyzeInvalidJSONTwice(t *testing.T) {
 	srv, calls := fakeAI(t, content("nope"), content("still nope"))
-	w := serve(realHandler(srv), form(t, src("box"), img(jpeg)))
+	w := serve(realHandler(srv), form(t, box(jpeg)))
 	if w.Code != 422 || calls.Load() != 2 || errCode(t, w) != httpx.CodeNothingFound {
 		t.Fatalf("status %d, calls %d", w.Code, calls.Load())
 	}
@@ -174,7 +242,7 @@ func TestAnalyzeInvalidJSONTwice(t *testing.T) {
 
 func TestAnalyze5xxTwice(t *testing.T) {
 	srv, calls := fakeAI(t, status(500), status(503))
-	w := serve(realHandler(srv), form(t, src("box"), img(jpeg)))
+	w := serve(realHandler(srv), form(t, box(jpeg)))
 	if w.Code != 502 || calls.Load() != 2 || errCode(t, w) != httpx.CodeModelError {
 		t.Fatalf("status %d, calls %d", w.Code, calls.Load())
 	}
@@ -182,7 +250,7 @@ func TestAnalyze5xxTwice(t *testing.T) {
 
 func TestAnalyze4xxNoRetry(t *testing.T) {
 	srv, calls := fakeAI(t, status(400))
-	w := serve(realHandler(srv), form(t, src("box"), img(jpeg)))
+	w := serve(realHandler(srv), form(t, box(jpeg)))
 	if w.Code != 502 || calls.Load() != 1 {
 		t.Fatalf("status %d, calls %d", w.Code, calls.Load())
 	}
@@ -190,7 +258,7 @@ func TestAnalyze4xxNoRetry(t *testing.T) {
 
 func TestAnalyzeNothingFound(t *testing.T) {
 	srv, _ := fakeAI(t, content(`{"medications":[],"unreadable_items":0}`))
-	w := serve(realHandler(srv), form(t, src("box"), img(jpeg)))
+	w := serve(realHandler(srv), form(t, box(jpeg)))
 	if w.Code != 422 {
 		t.Fatalf("status %d", w.Code)
 	}
@@ -198,34 +266,35 @@ func TestAnalyzeNothingFound(t *testing.T) {
 
 func TestAnalyzeOnlyUnreadable(t *testing.T) {
 	srv, _ := fakeAI(t, content(`{"medications":[],"unreadable_items":2}`))
-	w := serve(realHandler(srv), form(t, src("note"), img(jpeg)))
+	w := serve(realHandler(srv), form(t, note(jpeg)))
 	if w.Code != 200 || !strings.Contains(w.Body.String(), `"medications":[]`) {
 		t.Fatalf("status %d, body %s", w.Code, w.Body)
 	}
 }
 
 func TestAnalyzeInputErrors(t *testing.T) {
-	h := &Handler{Mock: true}
+	h := &Handler{Mock: true, Catalog: testCatalog}
 	png := []byte("\x89PNG\r\n\x1a\n0000000000")
 	big := append(append([]byte{}, jpeg...), make([]byte, MaxImageBytes)...)
-	seven := []part{src("box")}
-	for range 7 {
-		seven = append(seven, img(jpeg))
+	eleven := []part{}
+	for range MaxImages + 1 {
+		eleven = append(eleven, note(jpeg))
 	}
 	tests := []struct {
 		name  string
 		parts []part
 		want  int
 	}{
-		{"png ok", []part{src("box"), img(png)}, 200},
-		{"too large", []part{src("box"), img(big)}, 413},
-		{"too large in total", []part{src("box"), img(big[:6<<20]), img(big[:5<<20])}, 413},
-		{"too many images", seven, 413},
-		{"wrong type", []part{src("box"), img([]byte("GIF89a......"))}, 415},
-		{"jpeg header but text body", []part{src("box"), {name: "image", filename: "x.jpg", data: []byte("hello")}}, 415},
-		{"missing source", []part{img(jpeg)}, 400},
-		{"bad source", []part{src("manual"), img(jpeg)}, 400},
-		{"no image", []part{src("box")}, 400},
+		{"png ok", []part{box(png)}, 200},
+		{"note and box", []part{note(jpeg), box(jpeg), photo("regimen", jpeg)}, 200},
+		{"too large", []part{box(big)}, 413},
+		{"too large in total", []part{box(big[:8<<20]), note(big[:8<<20])}, 413},
+		{"too many images", eleven, 413},
+		{"wrong type", []part{box([]byte("GIF89a......"))}, 415},
+		{"jpeg name but text body", []part{{name: "box", filename: "x.jpg", data: []byte("hello")}}, 415},
+		{"old source field", []part{{name: "source", data: []byte("box")}, photo("image", jpeg)}, 400},
+		{"old image field", []part{photo("image", jpeg)}, 400},
+		{"no image", []part{{name: "comment", data: []byte("x")}}, 400},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -243,15 +312,36 @@ func TestAnalyzeInputErrors(t *testing.T) {
 }
 
 func TestAnalyzeMock(t *testing.T) {
-	h := &Handler{Mock: true} // no AI client: any model call would panic
-	for _, source := range []string{"box", "note", "regimen"} {
-		w := serve(h, form(t, src(source), img(jpeg)))
-		var resp model.AnalyzeResponse
-		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil || w.Code != 200 {
-			t.Fatalf("%s: status %d, err %v", source, w.Code, err)
-		}
-		if len(resp.Medications) < 3 {
-			t.Errorf("%s: %d items", source, len(resp.Medications))
+	h := &Handler{Mock: true, Catalog: testCatalog} // no AI client: any model call would panic
+	resp := decode(t, serve(h, form(t, note(jpeg), box(jpeg), box(jpeg))))
+	status := map[string]string{}
+	for _, m := range resp.Medications {
+		status[m.Name] = m.Catalog.Status
+	}
+	want := map[string]string{
+		"Prestarium Neo 5 mg": "matched",            // merged note + box
+		"Warfarin Orion 5 mg": "matched",            // merged, strength conflict
+		"Paralen 500":         "not_found",          // not in the catalogue
+		"Ibuprofen 400":       "needs_confirmation", // generic name
+		"Pantomil":            "needs_confirmation", // unsure handwriting
+	}
+	for name, st := range want {
+		if status[name] != st {
+			t.Errorf("%s: %q, want %q (all: %v)", name, status[name], st, status)
 		}
 	}
+	if len(resp.Medications) != len(want) {
+		t.Logf("%s", mustJSON(resp))
+		t.Errorf("%d items, want %d", len(resp.Medications), len(want))
+	}
+	for _, m := range resp.Medications {
+		if m.Name == "Warfarin Orion 5 mg" && (len(m.Conflicts) != 1 || m.Conflicts[0].Field != "strength") {
+			t.Errorf("warfarin conflicts: %s", mustJSON(m))
+		}
+	}
+}
+
+func mustJSON(v any) string {
+	b, _ := json.Marshal(v)
+	return string(b)
 }

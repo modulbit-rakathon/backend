@@ -12,6 +12,7 @@ import (
 
 	"pillgaze/internal/ai"
 	"pillgaze/internal/analyze"
+	"pillgaze/internal/catalog"
 	"pillgaze/internal/config"
 	"pillgaze/internal/fixtures"
 	"pillgaze/internal/httpx"
@@ -35,7 +36,16 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
-	analyzer := &analyze.Handler{Model: cfg.AIModelA, Mock: cfg.MockAI}
+	cat, err := catalog.Load()
+	if err != nil {
+		log.Error("catalog data", "err", err)
+		os.Exit(1)
+	}
+	mux.Handle("GET /api/catalog", httpx.Chain(&catalog.SearchHandler{Catalog: cat},
+		httpx.NewRateLimiter(120, time.Minute).Middleware(),
+	))
+
+	analyzer := &analyze.Handler{Model: cfg.AIModelA, Mock: cfg.MockAI, Catalog: cat}
 	if !cfg.MockAI {
 		client := ai.New(cfg.AIBaseURL, cfg.AIAPIKey)
 		// Full resolution: handwriting misreads drop and get flagged (docs/notes.md).
