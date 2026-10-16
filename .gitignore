@@ -1,0 +1,6 @@
+.env
+/server
+/bin/
+*.exe
+*.test
+*.out
