@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -17,6 +18,7 @@ type Config struct {
 	AppAPIKey     string
 	AllowedOrigin string
 	Port          string
+	PinTTL        time.Duration
 }
 
 // Load reads the config from the environment. Outside mock mode every value
@@ -37,6 +39,14 @@ func load(getenv func(string) string) (Config, error) {
 	}
 	if c.Port == "" {
 		c.Port = "8080"
+	}
+	c.PinTTL = 3 * time.Minute
+	if v := getenv("PIN_TTL"); v != "" {
+		d, err := time.ParseDuration(v)
+		if err != nil || d <= 0 {
+			return c, fmt.Errorf("PIN_TTL: not a positive duration: %q", v)
+		}
+		c.PinTTL = d
 	}
 	if v := getenv("MOCK_AI"); v != "" {
 		b, err := strconv.ParseBool(v)

@@ -13,7 +13,9 @@ import (
 	"pillgaze/internal/ai"
 	"pillgaze/internal/analyze"
 	"pillgaze/internal/config"
+	"pillgaze/internal/fixtures"
 	"pillgaze/internal/httpx"
+	"pillgaze/internal/share"
 )
 
 func main() {
@@ -41,6 +43,26 @@ func main() {
 		httpx.BodyLimit(analyze.MaxBodyBytes),
 	))
 
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	store := share.NewStore(cfg.PinTTL)
+	go store.RunJanitor(ctx, 15*time.Second)
+	sharer := &share.Handler{
+		Store:   store,
+		Limiter: share.NewFailureLimiter(),
+		Mock:    cfg.MockAI,
+		Fixture: fixtures.Shared,
+	}
+	mux.Handle("POST /api/share", httpx.Chain(http.HandlerFunc(sharer.Share),
+		httpx.NewRateLimiter(10, time.Minute).Middleware(),
+		httpx.BodyLimit(share.MaxBodyBytes),
+	))
+	mux.Handle("POST /api/share/claim", httpx.Chain(http.HandlerFunc(sharer.Claim),
+		httpx.NewRateLimiter(30, time.Minute).Middleware(),
+		httpx.BodyLimit(1<<10),
+	))
+
 	if cfg.AppAPIKey == "" {
 		log.Warn("APP_API_KEY empty: /api/* is unauthenticated (mock mode only)")
 	}
@@ -61,11 +83,8 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
-
 	go func() {
-		log.Info("listening", "port", cfg.Port, "mock_ai", cfg.MockAI)
+		log.Info("listening", "port", cfg.Port, "mock_ai", cfg.MockAI, "pin_ttl", cfg.PinTTL.String())
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Error("listen", "err", err)
 			os.Exit(1)

@@ -16,6 +16,7 @@ const (
 	CodeNothingFound     = "nothing_found"
 	CodeRateLimited      = "rate_limited"
 	CodeModelError       = "model_error"
+	CodeUnavailable      = "unavailable"
 	CodeInternal         = "internal"
 )
 

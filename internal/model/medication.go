@@ -47,3 +47,19 @@ type AnalyzeResponse struct {
 	Medications     []Medication `json:"medications"`
 	UnreadableItems int          `json:"unreadable_items"`
 }
+
+// SharedMedication is what POST /api/share accepts and claim returns:
+// uncertain_fields and conflicts are resolved by the patient and not shared.
+type SharedMedication struct {
+	ID              string   `json:"id"`
+	Kind            string   `json:"kind"`
+	Name            string   `json:"name"`
+	ActiveSubstance *string  `json:"active_substance"`
+	Strength        *string  `json:"strength"`
+	Form            *string  `json:"form"`
+	Frequency       *string  `json:"frequency"`
+	Amount          *string  `json:"amount"`
+	Source          string   `json:"source"`
+	Sources         []string `json:"sources,omitempty"`
+	NoteStyle       *string  `json:"note_style,omitempty"`
+}

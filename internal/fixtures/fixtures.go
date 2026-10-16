@@ -72,3 +72,31 @@ func regimen() []model.Medication {
 		{ID: "med_reg003", Kind: model.KindRegimen, Name: "R-CHOP", Source: model.SourceNote, UncertainFields: []string{}},
 	}
 }
+
+// Shared is the list PIN 0000 returns in mock mode: what a patient would
+// share after confirming the box and note fixtures.
+func Shared() []model.SharedMedication {
+	return []model.SharedMedication{
+		{
+			ID: "med_box001", Kind: model.KindDrug, Name: "Prestarium Neo 5 mg",
+			ActiveSubstance: s("perindoprilum argininum"), Strength: s("5 mg"), Form: s("potahované tablety"),
+			Frequency: s("1-0-0"), Amount: s("1 tbl"),
+			Source: model.SourceBox, Sources: []string{model.SourceBox, model.SourceNote},
+		},
+		{
+			ID: "med_box003", Kind: model.KindDrug, Name: "Warfarin Orion 5 mg",
+			ActiveSubstance: s("warfarinum natricum"), Strength: s("5 mg"), Form: s("tablety"),
+			Frequency: s("0-0-1"), Amount: s("1 tbl"),
+			Source: model.SourceBox, Sources: []string{model.SourceBox, model.SourceNote},
+		},
+		{
+			ID: "med_note003", Kind: model.KindDrug, Name: "Ibuprofen 400",
+			Strength: s("400 mg"), Frequency: s("při bolesti, max. 3x denně"), Amount: s("1 tbl"),
+			Source: model.SourceNote, Sources: []string{model.SourceNote}, NoteStyle: s(model.NoteStyleHandwritten),
+		},
+		{
+			ID: "med_reg001", Kind: model.KindRegimen, Name: "FOLFOX",
+			Source: model.SourceNote, Sources: []string{model.SourceNote},
+		},
+	}
+}
