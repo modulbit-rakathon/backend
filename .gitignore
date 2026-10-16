@@ -6,3 +6,4 @@
 *.out
 /data/samples/
 /data/eval/
+__pycache__/
