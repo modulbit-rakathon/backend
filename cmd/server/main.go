@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"pillgaze/internal/ai"
+	"pillgaze/internal/analyze"
 	"pillgaze/internal/config"
 	"pillgaze/internal/httpx"
 )
@@ -29,6 +31,15 @@ func main() {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.Write([]byte("ok"))
 	})
+
+	analyzer := &analyze.Handler{Model: cfg.AIModelA, Mock: cfg.MockAI}
+	if !cfg.MockAI {
+		analyzer.AI = ai.New(cfg.AIBaseURL, cfg.AIAPIKey)
+	}
+	mux.Handle("POST /api/analyze", httpx.Chain(analyzer,
+		httpx.NewRateLimiter(30, time.Minute).Middleware(),
+		httpx.BodyLimit(analyze.MaxBodyBytes),
+	))
 
 	if cfg.AppAPIKey == "" {
 		log.Warn("APP_API_KEY empty: /api/* is unauthenticated (mock mode only)")

@@ -1,0 +1,5 @@
+Na fotce je lístek nebo seznam léků (ručně psaný nebo tištěný, např. propouštěcí zpráva nebo seznam od lékaře).
+- Každý řádek s lékem je jedna položka.
+- "note_style": "handwritten", pokud je položka napsaná rukou, "printed", pokud je vytištěná. Určuj pro každou položku zvlášť.
+- U ručně psaného textu buď zvlášť opatrný: písmeno, které nejde jednoznačně přečíst, neodhaduj podle známých názvů léků. Pole dej do "uncertain_fields".
+- Dávkovací schéma přepiš ve tvaru, v jakém je napsané (např. "1-0-1", "1/2-0-0", "ráno 1 tbl").

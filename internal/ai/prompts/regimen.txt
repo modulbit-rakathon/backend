@@ -1,0 +1,4 @@
+Na fotce je název nebo zkratka onkologického léčebného režimu (např. FOLFOX, AC-T, R-CHOP), typicky ve zprávě nebo na lístku.
+- Každý režim je jedna položka. Zkratku režimu přepiš přesně do "name", včetně pomlček a mezer.
+- Všechna ostatní pole ("active_substance", "strength", "form", "frequency", "amount", "note_style") jsou null. Režim nerozkládej na jednotlivé léky.
+- Běžné léky, které nejsou režimem, ignoruj.
