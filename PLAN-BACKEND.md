@@ -88,7 +88,7 @@ Oba modely jsou reasoning modely: posíláme `max_completion_tokens` a `temperat
 - `map[string]entry` + `sync.Mutex`. PIN: 4 číslice z `crypto/rand`, unikátní mezi aktivními. Pokud je plno nebo kolize opakovaně, vrať `503`.
 - TTL `PIN_TTL` (výchozí **3 minuty**). Janitor goroutine maže prošlé záznamy. Claim záznam hned smaže.
 - Neúspěšné claimy: limit na IP **a globální limit** (4 číslice jsou jen 10 000 kombinací). Překročení vrací `429` s `Retry-After`.
-- Validace při `share`: whitelist polí (`DisallowUnknownFields`), max 50 položek (`413`), max 100 znaků na řetězec.
+- Validace při `share`: whitelist polí (`DisallowUnknownFields`), max 50 položek (`413`), max 200 znaků na řetězec.
 - Při `MOCK_AI=true` vrací PIN `0000` vždy stejnou fixturu.
 - Testy: expirace (injektovatelné hodiny), jednorázovost, kolize, limit neúspěšných pokusů, souběh (`go test -race`).
 

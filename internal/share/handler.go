@@ -15,8 +15,8 @@ import (
 
 const (
 	MaxItems     = 50
-	MaxStringLen = 100
-	MaxBodyBytes = 256 << 10
+	MaxStringLen = 200
+	MaxBodyBytes = 512 << 10
 )
 
 type Handler struct {

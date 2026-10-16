@@ -55,7 +55,7 @@ Nenalezené nebo nečitelné pole je `null`, nikdy odhad.
 
 **Pole přijímaná při sdílení** (`POST /api/share`): `id, kind, name, active_substance, strength, form, frequency, amount, source, sources, note_style`. `uncertain_fields` a `conflicts` se **nesdílejí**, pacient je při potvrzení vyřešil.
 
-Validace: neznámé `source`, `kind` nebo jakékoli neznámé pole → `400`. Max 50 položek (`413`), max 100 znaků na řetězec.
+Validace: neznámé `source`, `kind` nebo jakékoli neznámé pole → `400`. Max 50 položek (`413`), max 200 znaků na řetězec.
 
 ## 3. Endpointy
 

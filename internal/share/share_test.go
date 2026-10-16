@@ -212,6 +212,11 @@ func TestShareValidation(t *testing.T) {
 		want       int
 	}{
 		{"ok", shareBody(med("med_1")), 201},
+		// The longest active substance in the organisers' catalogue (111 chars).
+		{"catalog substance", bad(func(m *model.SharedMedication) {
+			v := "Bezvodý amilorid-hydrochlorid / hydrochlorothiazid (amiloridi hydrochloridum anhydricum / hydrochlorothiazidum)"
+			m.ActiveSubstance = &v
+		}), 201},
 		{"unknown field", `{"medications":[{"id":"a","kind":"drug","name":"x","source":"box","uncertain_fields":["name"]}]}`, 400},
 		{"unknown top-level field", `{"medications":[],"patient":"x"}`, 400},
 		{"conflicts are not shared", `{"medications":[{"id":"a","kind":"drug","name":"x","source":"box","conflicts":[]}]}`, 400},
