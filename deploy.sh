@@ -7,8 +7,8 @@
 #   ./deploy.sh
 set -euo pipefail
 
-RESOURCE_GROUP="rg-pillgaze"
-LOCATION="westeurope"
+RESOURCE_GROUP="rg-team92"   # the only group our account may write to
+LOCATION="swedencentral"
 APP_NAME="pillgaze-backend"
 ENVIRONMENT="pillgaze-env"
 MOCK_AI="${MOCK_AI:-false}"
@@ -22,7 +22,12 @@ AI_MODEL_B="${AI_MODEL_B:-}"
 
 cd "$(dirname "$0")"
 
-az group create --name "$RESOURCE_GROUP" --location "$LOCATION" --output none
+# Needs Microsoft.App registered in the subscription (organisers: az provider register -n Microsoft.App).
+state=$(az provider show --namespace Microsoft.App --query registrationState --output tsv)
+if [ "$state" != "Registered" ]; then
+  echo "Microsoft.App is $state; ask the organisers to run: az provider register --namespace Microsoft.App" >&2
+  exit 1
+fi
 
 # Builds the Dockerfile in the cloud and creates or updates the app.
 # On the very first run this revision has no secrets yet and fails its config
