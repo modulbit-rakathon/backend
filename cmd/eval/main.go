@@ -68,6 +68,7 @@ type runResult struct {
 	job
 	Error      string       `json:"error,omitempty"`
 	LatencyMS  int64        `json:"latency_ms"`
+	Prompt     int          `json:"prompt_tokens"`
 	Tokens     int          `json:"completion_tokens"`
 	Items      []itemResult `json:"items"`
 	Extra      []string     `json:"extra,omitempty"`
@@ -122,6 +123,12 @@ func main() {
 	fmt.Fprintln(os.Stderr)
 
 	summarize(results)
+	var promptTotal, completionTotal int
+	for _, r := range results {
+		promptTotal += r.Prompt
+		completionTotal += r.Tokens
+	}
+	fmt.Printf("tokens: %d prompt, %d completion (incl. retries)\n", promptTotal, completionTotal)
 
 	os.MkdirAll("data/eval", 0o755)
 	out := filepath.Join("data/eval", time.Now().Format("20060102-150405")+".json")
@@ -152,7 +159,7 @@ func run(c *ai.Client, j job, expected []gtItem) runResult {
 	start := time.Now()
 	res, err := c.Extract(context.Background(), j.Model, "note", "image/jpeg", img)
 	r.LatencyMS = time.Since(start).Milliseconds()
-	r.Tokens = res.CompletionTokens
+	r.Prompt, r.Tokens = res.PromptTokens, res.CompletionTokens
 	if err != nil {
 		r.Error = err.Error()
 		return r
