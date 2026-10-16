@@ -46,6 +46,10 @@ type Result struct {
 }
 
 type Client struct {
+	// Detail is the image_url detail level ("low", "high", "auto"); empty
+	// leaves it to the model's default.
+	Detail string
+
 	baseURL string
 	apiKey  string
 	http    *http.Client
@@ -67,7 +71,7 @@ func (c *Client) Extract(ctx context.Context, model, source, mime string, img []
 	if err != nil {
 		return Result{}, err
 	}
-	body, err := json.Marshal(buildRequest(model, prompt, mime, img))
+	body, err := json.Marshal(buildRequest(model, prompt, mime, c.Detail, img))
 	if err != nil {
 		return Result{}, err
 	}
@@ -191,15 +195,18 @@ func (r *Result) validate() error {
 	return nil
 }
 
-func buildRequest(model, prompt, mime string, img []byte) map[string]any {
-	dataURL := "data:" + mime + ";base64," + base64.StdEncoding.EncodeToString(img)
+func buildRequest(model, prompt, mime, detail string, img []byte) map[string]any {
+	image := map[string]any{"url": "data:" + mime + ";base64," + base64.StdEncoding.EncodeToString(img)}
+	if detail != "" {
+		image["detail"] = detail
+	}
 	return map[string]any{
 		"model": model,
 		"messages": []any{
 			map[string]any{"role": "system", "content": prompt},
 			map[string]any{"role": "user", "content": []any{
 				map[string]any{"type": "text", "text": "Přepiš léky z této fotky podle pravidel."},
-				map[string]any{"type": "image_url", "image_url": map[string]any{"url": dataURL}},
+				map[string]any{"type": "image_url", "image_url": image},
 			}},
 		},
 		// Reasoning models reject max_tokens and temperature; see docs/notes.md.

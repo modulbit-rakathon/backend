@@ -38,3 +38,19 @@ Sheets split into a printed and a handwritten half (`scripts/split_samples.py`).
 - **Global limit trade-off:** it guards against guessing spread over many IPs, but an attacker can use it to block claims for everyone for up to a minute.
 - **Active PINs:** capped at 1000. Above that, share returns 503.
 - **Redeploy:** a deploy restarts the app and invalidates active PINs. Don't deploy during the demo.
+
+## Handwriting tuning (2026-10-16, sol, handwritten half, 160 items)
+| run | found | missing | strength OK | extra unflagged (excluding alternative brands) |
+|---|---|---|---|---|
+| baseline | 95 % | 5 % | 95 % | several real drugs instead of illegible ones (Januvia, Prothiaden, Paroxetin…) |
+| 1: `detail: high` | 97 % | 3 % | 96 % | 0 |
+| 2: + stricter prompt for handwriting | 95 % | 5 % | 96 % | 0 |
+| 3: + `line` field (verbatim line first) | 95 % | 5 % | 96 % | 0, but 10 % slower and more real names invented on the messiest sheet; dropped |
+
+- **Kept:** `detail: high` (the server now sends it by default) and the prompt from run 2.
+- **Effect:** a name the model can't read is now written out letter by letter ("Atevhon", "WAREARiN") and flagged in `uncertain_fields`, instead of being silently replaced by a known drug. In runs 1–3, every misread or substituted item had `name` in `uncertain_fields`.
+- **Remaining unflagged extras:** alternative brands on a separate line with no strength ("Gabapentin" under "Neurontin"). That is a faithful transcription; core deduplicates them.
+- **Brackets:** `name` can include an alternative in brackets or after a slash, as written ("BISOPROLOL PMCS (Concor)", "Videmel /Caltrate"). Core has to count on it when matching.
+- **Printed half with the final setup:** 100 % found, 100 % strengths, p50 10 s.
+- **Noise:** results vary between runs by a few items, so differences of ±2 % are noise.
+- **Cost of tuning:** 4 runs × 27 calls, about 410k prompt and 90k completion tokens.

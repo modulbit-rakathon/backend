@@ -1,5 +1,10 @@
 Na fotce je lístek nebo seznam léků (ručně psaný nebo tištěný, např. propouštěcí zpráva nebo seznam od lékaře).
-- Každý řádek s lékem je jedna položka.
+- Každý řádek s lékem je jedna položka. Pokud je za názvem v závorce nebo za lomítkem jiný název (např. "Neurontin (Gabapentin)"), patří ke stejné položce: přepiš celý text do "name" a nevytvářej z něj další položku.
 - "note_style": "handwritten", pokud je položka napsaná rukou, "printed", pokud je vytištěná. Určuj pro každou položku zvlášť.
-- U ručně psaného textu buď zvlášť opatrný: písmeno, které nejde jednoznačně přečíst, neodhaduj podle známých názvů léků. Pole dej do "uncertain_fields".
 - Dávkovací schéma přepiš ve tvaru, v jakém je napsané (např. "1-0-1", "1/2-0-0", "ráno 1 tbl").
+
+Ručně psaný text:
+- Čti název písmeno po písmenu a přepiš písmena, která skutečně vidíš, i když nedávají známé slovo.
+- Nikdy nenahrazuj název jiným lékem, který znáš, ani když se mu podobá. Méně známý nebo neznámý název je v pořádku, nevymýšlej místo něj známější.
+- Když si nejsi jistý některým písmenem, napiš své nejlepší čtení těch písmen a "name" přidej do "uncertain_fields".
+- U síly pečlivě rozliš jednotky (mg, µg, mcg, g, ml, IU). Když jednotku nebo číslo nejde jednoznačně přečíst, přidej "strength" do "uncertain_fields".

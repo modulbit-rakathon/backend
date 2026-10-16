@@ -72,6 +72,7 @@ type runResult struct {
 	Tokens     int          `json:"completion_tokens"`
 	Items      []itemResult `json:"items"`
 	Extra      []string     `json:"extra,omitempty"`
+	Invented   []string     `json:"invented,omitempty"` // extras that are a different drug
 	Unreadable int          `json:"unreadable_items"`
 	Raw        []ai.Item    `json:"raw,omitempty"` // model output, for rescoring without new calls
 }
@@ -81,12 +82,26 @@ func main() {
 	variants := flag.String("variants", "printed,handwritten", "which splits to run")
 	limit := flag.Int("n", 0, "max photos (0 = all)")
 	par := flag.Int("p", 4, "parallel model calls")
+	detail := flag.String("detail", "", "image detail: low, high, auto (empty = model default)")
+	rescore := flag.String("rescore", "", "re-score a saved data/eval/*.json without calling the model")
 	flag.Parse()
 
 	var gt map[string][]gtItem
 	var manifest map[string]string
 	mustJSON("data/ground_truth.json", &gt)
 	mustJSON("data/manifest.json", &manifest)
+
+	if *rescore != "" {
+		var results []runResult
+		mustJSON(*rescore, &results)
+		for i := range results {
+			if results[i].Error == "" {
+				score(&results[i], gt[results[i].Patient])
+			}
+		}
+		summarize(results)
+		return
+	}
 
 	photos := slices.Sorted(func(yield func(string) bool) {
 		for k := range manifest {
@@ -109,6 +124,7 @@ func main() {
 	}
 
 	client := ai.New(strings.TrimRight(os.Getenv("AI_BASE_URL"), "/"), os.Getenv("AI_API_KEY"))
+	client.Detail = *detail
 	results := make([]runResult, len(jobs))
 	sem := make(chan struct{}, *par)
 	var wg sync.WaitGroup
@@ -167,7 +183,14 @@ func run(c *ai.Client, j job, expected []gtItem) runResult {
 	}
 	r.Unreadable = res.UnreadableItems
 	r.Raw = res.Items
+	score(&r, expected)
+	return r
+}
 
+// score compares r.Raw with the expected items; it fills Items and Extra.
+func score(r *runResult, expected []gtItem) {
+	res := struct{ Items []ai.Item }{r.Raw}
+	r.Items, r.Extra, r.Invented = nil, nil, nil
 	used := make([]bool, len(res.Items))
 	for _, e := range expected {
 		best, bestLv := -1, lvMissing
@@ -201,9 +224,32 @@ func run(c *ai.Client, j job, expected []gtItem) runResult {
 	for i, it := range res.Items {
 		if !used[i] {
 			r.Extra = append(r.Extra, it.Name)
+			if extraKind(it.Name, expected) == "invented" {
+				r.Invented = append(r.Invented, it.Name)
+			}
 		}
 	}
-	return r
+}
+
+// extraKind sorts an unmatched item: "split" (an alternative brand the model
+// split off into its own item), "near" (a misread of an expected name) or
+// "invented" (a different drug: the dangerous case).
+func extraKind(name string, expected []gtItem) string {
+	g := letters(name)
+	for _, e := range expected {
+		if e.Alternative != nil {
+			if a := letters(*e.Alternative); a == g || prefixOf(g, a) || close(g, a) {
+				return "split"
+			}
+		}
+	}
+	for _, e := range expected {
+		n := letters(e.Name)
+		if close(g, n) || prefixOf(g, n) || levenshtein(g, n) <= len([]rune(n))/3 {
+			return "near"
+		}
+	}
+	return "invented"
 }
 
 func ptr(s string) *string { return &s }
@@ -335,7 +381,7 @@ func levenshtein(a, b string) int {
 func summarize(results []runResult) {
 	type key struct{ model, variant string }
 	type agg struct {
-		runs, errors, items, extra       int
+		runs, errors, items, extra, inv  int
 		levels                           map[string]int
 		strengthOK, freqOK, silent, flag int
 		latency                          []int64
@@ -358,6 +404,7 @@ func summarize(results []runResult) {
 		a.latency = append(a.latency, r.LatencyMS)
 		a.tokens += r.Tokens
 		a.extra += len(r.Extra)
+		a.inv += len(r.Invented)
 		for _, it := range r.Items {
 			a.items++
 			a.levels[it.Level]++
@@ -396,8 +443,8 @@ func summarize(results []runResult) {
 		}
 		return fmt.Sprintf("%d%%", 100*n/d)
 	}
-	fmt.Printf("%-20s %-12s %5s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s %7s %7s\n",
-		"model", "variant", "items", "exact", "norm", "part", "alt", "fuzzy", "miss", "extra", "str", "freq", "flag", "silent", "style", "p50ms", "p90ms")
+	fmt.Printf("%-20s %-12s %5s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s %7s %7s\n",
+		"model", "variant", "items", "exact", "norm", "part", "alt", "fuzzy", "miss", "extra", "inv", "str", "freq", "flag", "silent", "style", "p50ms", "p90ms")
 	for _, k := range keys {
 		a := aggs[k]
 		found := a.items - a.levels[lvMissing]
@@ -408,10 +455,10 @@ func summarize(results []runResult) {
 			}
 			return a.latency[int(q*float64(len(a.latency)-1))]
 		}
-		fmt.Printf("%-20s %-12s %5d %6s %6s %6s %6s %6s %6s %6d %6s %6s %6s %6s %6s %7d %7d\n",
+		fmt.Printf("%-20s %-12s %5d %6s %6s %6s %6s %6s %6s %6d %6d %6s %6s %6s %6s %6s %7d %7d\n",
 			k.model, k.variant, a.items,
 			pct(a.levels[lvExact], a.items), pct(a.levels[lvNorm], a.items), pct(a.levels[lvPartial], a.items), pct(a.levels[lvAlt], a.items),
-			pct(a.levels[lvFuzzy], a.items), pct(a.levels[lvMissing], a.items), a.extra,
+			pct(a.levels[lvFuzzy], a.items), pct(a.levels[lvMissing], a.items), a.extra, a.inv,
 			pct(a.strengthOK, found), pct(a.freqOK, found), pct(a.flag, found), pct(a.silent, found),
 			pct(a.styleWrong, found), p(0.5), p(0.9))
 		if a.errors > 0 {
@@ -425,6 +472,7 @@ exact/norm/part/alt/fuzzy/miss: share of expected items by best name match
 str: same numbers in strength as ground truth; freq: same frequency text (of found items)
 flag: found items with any uncertain_fields
 silent: found items with a misread name or wrong strength numbers NOT flagged as uncertain
-extra: returned items matching nothing expected (invented or replaced names)
+extra: returned items matching nothing expected; inv: of those, a different drug
+  (not a split-off alternative brand, not a near misread): the dangerous case
 style: note_style differs from the photo variant`)
 }

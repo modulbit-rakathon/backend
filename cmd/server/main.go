@@ -36,7 +36,10 @@ func main() {
 
 	analyzer := &analyze.Handler{Model: cfg.AIModelA, Mock: cfg.MockAI}
 	if !cfg.MockAI {
-		analyzer.AI = ai.New(cfg.AIBaseURL, cfg.AIAPIKey)
+		client := ai.New(cfg.AIBaseURL, cfg.AIAPIKey)
+		// Full resolution: handwriting misreads drop and get flagged (docs/notes.md).
+		client.Detail = "high"
+		analyzer.AI = client
 	}
 	mux.Handle("POST /api/analyze", httpx.Chain(analyzer,
 		httpx.NewRateLimiter(30, time.Minute).Middleware(),
