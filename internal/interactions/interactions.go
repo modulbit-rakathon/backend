@@ -19,6 +19,13 @@ import (
 //go:embed ddinter.csv.gz
 var ddinterGz []byte
 
+// What an interaction does and what to do about it, from the DDInter website
+// (English originals), for major and moderate pairs between catalogue and
+// regimen substances. Built by scripts/ddinter_text.py.
+//
+//go:embed ddinter_text.csv.gz
+var ddinterTextGz []byte
+
 // Source is what the result was checked against.
 type Source struct {
 	Name    string `json:"name"`
@@ -43,8 +50,14 @@ const (
 
 var levelOrder = []string{LevelMajor, LevelModerate, LevelMinor, LevelUnknown}
 
+// text is the description of one DDInter pair.
+type text struct {
+	description, management, url string
+}
+
 type DB struct {
 	pairs map[[2]string]string // sorted DDInter names -> level
+	texts map[[2]string]text   // sorted DDInter names -> description (only some pairs)
 	// byKey maps a spelling key to a DDInter name; "" marks a key shared by
 	// two different names, which is never matched.
 	byKey map[string]string
@@ -59,7 +72,7 @@ func Load() (*DB, error) {
 	}
 	r := csv.NewReader(zr)
 	r.FieldsPerRecord = 3
-	db := &DB{pairs: map[[2]string]string{}, byKey: map[string]string{}, alias: map[string]string{}}
+	db := &DB{pairs: map[[2]string]string{}, texts: map[[2]string]text{}, byKey: map[string]string{}, alias: map[string]string{}}
 	names := map[string]bool{}
 	strs := map[string]string{}
 	intern := func(s string) string {
@@ -96,6 +109,9 @@ func Load() (*DB, error) {
 			}
 		}
 	}
+	if err := db.loadTexts(); err != nil {
+		return nil, fmt.Errorf("ddinter texts: %w", err)
+	}
 	for a, target := range aliases {
 		if !names[target] {
 			return nil, fmt.Errorf("alias %q -> %q: not in DDInter", a, target)
@@ -103,6 +119,33 @@ func Load() (*DB, error) {
 		db.alias[inputKey(a, false)] = target
 	}
 	return db, nil
+}
+
+func (db *DB) loadTexts() error {
+	zr, err := gzip.NewReader(bytes.NewReader(ddinterTextGz))
+	if err != nil {
+		return err
+	}
+	r := csv.NewReader(zr)
+	r.FieldsPerRecord = 5
+	for {
+		rec, err := r.Read()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		k := [2]string{rec[0], rec[1]}
+		if _, ok := db.pairs[k]; !ok {
+			return fmt.Errorf("%s × %s: pair not in DDInter table", rec[0], rec[1])
+		}
+		db.texts[k] = text{
+			description: rec[3],
+			management:  rec[4],
+			url:         DDInter.URL + "/ddinter/interact/" + rec[2] + "/",
+		}
+	}
 }
 
 // Resolve finds the DDInter name for one substance, trying each spelling.
@@ -137,6 +180,11 @@ type Pair struct {
 	SubstanceA string `json:"substance_a"`
 	SubstanceB string `json:"substance_b"`
 	Level      string `json:"level"`
+	// What the interaction does and how to manage it (DDInter, English).
+	// Only for major and moderate pairs of catalogue and regimen substances.
+	Description string `json:"description,omitempty"`
+	Management  string `json:"management,omitempty"`
+	URL         string `json:"url,omitempty"` // the pair's page on DDInter
 }
 
 const (
@@ -214,7 +262,11 @@ func (db *DB) Check(meds []Med) Result {
 				continue
 			}
 			seen[k] = true
-			res.Pairs = append(res.Pairs, Pair{A: a.medID, B: b.medID, SubstanceA: a.name, SubstanceB: b.name, Level: level})
+			t := db.texts[names]
+			res.Pairs = append(res.Pairs, Pair{
+				A: a.medID, B: b.medID, SubstanceA: a.name, SubstanceB: b.name, Level: level,
+				Description: t.description, Management: t.management, URL: t.url,
+			})
 		}
 	}
 	slices.SortStableFunc(res.Pairs, func(x, y Pair) int {

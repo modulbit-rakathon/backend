@@ -178,7 +178,10 @@ Response `200`:
 ```json
 {
   "pairs": [
-    {"a": "med_02", "b": "med_01", "substance_a": "Ibuprofen", "substance_b": "Warfarin", "level": "major"}
+    {"a": "med_02", "b": "med_01", "substance_a": "Ibuprofen", "substance_b": "Warfarin", "level": "major",
+     "description": "Nonsteroidal anti-inflammatory drugs (NSAIDs) may potentiate the hypoprothrombinemic effect and bleeding risk associated with oral anticoagulants.",
+     "management": "NSAIDs should be administered with oral anticoagulants only if benefit outweighs risk. The INR should be checked frequently…",
+     "url": "https://ddinter.scbdd.com/ddinter/interact/957806/"}
   ],
   "checked_against": {"name": "DDInter", "url": "https://ddinter.scbdd.com", "license": "CC BY-NC-SA 4.0", "version": "download of 2026-10-16"},
   "unchecked": [
@@ -190,9 +193,10 @@ Response `200`:
 ```
 
 - **`pairs`:** dvojice léků (`a`, `b` jsou `id`) s interakcí v DDInter, seřazené podle závažnosti. `level` je `major` | `moderate` | `minor` | `unknown` (`unknown` znamená, že DDInter interakci uvádí, ale bez závažnosti). Látky uvnitř jednoho kombinovaného přípravku se proti sobě nekontrolují.
+- **`description`, `management`, `url`** (nepovinné): co interakce způsobuje, jak postupovat a stránka dvojice na webu DDInter. Anglické originály z webu DDInter, jen u `major` a `moderate` dvojic látek z katalogu a z tabulky režimů (`scripts/ddinter_text.py`). U ostatních dvojic pole chybí.
 - **`unchecked`:** položky, které se zkontrolovat nepodařilo. `reason` je `no_active_substance` | `not_in_source` | `partly_in_source` (kombinace, kde se našla jen část látek). V `substances` jsou ty nenalezené.
 - **Prázdné `pairs` nikdy neznamená „žádné interakce“.** UI musí vždy zobrazit `checked_against`, `note` a `unchecked`.
-- **Zdroj:** DDInter (Xiong et al., NAR 2022), licence CC BY-NC-SA 4.0 (jen nekomerčně, s uvedením zdroje). Pokryje asi 83 % látek z katalogu organizátorů. Chybí v něm třeba kandesartan, gliklazid, dabigatran, metamizol a nimesulid. DDInter dává jen závažnost, mechanismus ani doporučení ne.
+- **Zdroj:** DDInter (Xiong et al., NAR 2022), licence CC BY-NC-SA 4.0 (jen nekomerčně, s uvedením zdroje). Pokryje asi 83 % látek z katalogu organizátorů. Chybí v něm třeba kandesartan, gliklazid, dabigatran, metamizol a nimesulid. Stažená DDInter dává jen závažnost. Popis a doporučení jsou jen na webu, proto je máme jen pro dvojice z katalogu a režimů.
 
 ### `POST /api/regimens/resolve`
 Request: `{ "text": "FOLFOX" }`, typicky `name` položky s `kind = regimen`. Max 100 znaků, neznámé pole vrací `400`.

@@ -13,6 +13,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 	"unicode"
 )
@@ -92,6 +93,24 @@ func Key(s string) string {
 		}
 	}
 	return b.String()
+}
+
+// Drugs returns every drug of every regimen, sorted, without duplicates.
+func (t *Table) Drugs() []string {
+	seen := map[string]bool{}
+	var out []string
+	for _, regs := range t.byKey {
+		for _, r := range regs {
+			for _, d := range r.Drugs {
+				if !seen[d] {
+					seen[d] = true
+					out = append(out, d)
+				}
+			}
+		}
+	}
+	slices.Sort(out)
+	return out
 }
 
 // Lookup returns every regimen the abbreviation can mean, or nil.
