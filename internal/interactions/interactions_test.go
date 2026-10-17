@@ -172,3 +172,29 @@ func TestHandler(t *testing.T) {
 		}
 	}
 }
+
+// Major and moderate pairs of catalogue substances carry DDInter's
+// description; other pairs have none.
+func TestDescription(t *testing.T) {
+	db := loadDB(t)
+	warfarin, ibuprofen := "Warfarin", "Ibuprofen"
+	res := db.Check([]Med{
+		{ID: "w", Name: "Warfarin", ActiveSubstance: &warfarin},
+		{ID: "i", Name: "Ibalgin", ActiveSubstance: &ibuprofen},
+	})
+	if len(res.Pairs) != 1 {
+		t.Fatalf("pairs: %+v", res.Pairs)
+	}
+	p := res.Pairs[0]
+	if !strings.Contains(p.Description, "bleeding") || p.Management == "" {
+		t.Errorf("description %q, management %q", p.Description, p.Management)
+	}
+	if !strings.HasPrefix(p.URL, "https://ddinter.scbdd.com/ddinter/interact/") {
+		t.Errorf("url %q", p.URL)
+	}
+	for k := range db.texts {
+		if l := db.pairs[k]; l != LevelMajor && l != LevelModerate {
+			t.Errorf("%v has a text but level %q", k, l)
+		}
+	}
+}
