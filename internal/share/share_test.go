@@ -34,7 +34,7 @@ func (c *clock) add(d time.Duration) {
 
 func newTestHandler(mock bool) (*Handler, *clock) {
 	c := &clock{t: time.Unix(1_800_000_000, 0)}
-	st := NewStore(3 * time.Minute)
+	st := NewStore[[]model.SharedMedication](3 * time.Minute)
 	st.now = c.now
 	lim := NewFailureLimiter()
 	lim.now = c.now
@@ -145,7 +145,7 @@ func TestCollisionAndFull(t *testing.T) {
 
 	h2, _ := newTestHandler(false)
 	for i := range MaxActive {
-		h2.Store.entries[fmt.Sprintf("x%d", i)] = entry{expires: time.Unix(1_900_000_000, 0)}
+		h2.Store.entries[fmt.Sprintf("x%d", i)] = entry[[]model.SharedMedication]{expires: time.Unix(1_900_000_000, 0)}
 	}
 	if w := do(h2.Share, "1.1.1.1", shareBody(med("d"))); w.Code != 503 {
 		t.Fatalf("full store: status %d, want 503", w.Code)

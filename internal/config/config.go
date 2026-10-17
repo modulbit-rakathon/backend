@@ -19,6 +19,7 @@ type Config struct {
 	AllowedOrigin string
 	Port          string
 	PinTTL        time.Duration
+	HandoffTTL    time.Duration
 }
 
 // Load reads the config from the environment. Outside mock mode every value
@@ -47,6 +48,15 @@ func load(getenv func(string) string) (Config, error) {
 			return c, fmt.Errorf("PIN_TTL: not a positive duration: %q", v)
 		}
 		c.PinTTL = d
+	}
+	// Longer than PinTTL: a helper may read the code out over the phone.
+	c.HandoffTTL = 15 * time.Minute
+	if v := getenv("HANDOFF_TTL"); v != "" {
+		d, err := time.ParseDuration(v)
+		if err != nil || d <= 0 {
+			return c, fmt.Errorf("HANDOFF_TTL: not a positive duration: %q", v)
+		}
+		c.HandoffTTL = d
 	}
 	if v := getenv("MOCK_AI"); v != "" {
 		b, err := strconv.ParseBool(v)

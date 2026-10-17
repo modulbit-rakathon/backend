@@ -20,7 +20,7 @@ const (
 )
 
 type Handler struct {
-	Store   *Store
+	Store   *Store[[]model.SharedMedication]
 	Limiter *FailureLimiter
 	// Mock makes MockPIN always return Fixture, without consuming it.
 	Mock    bool

@@ -17,6 +17,7 @@ import (
 	"pillgaze/internal/fixtures"
 	"pillgaze/internal/httpx"
 	"pillgaze/internal/interactions"
+	"pillgaze/internal/model"
 	"pillgaze/internal/regimens"
 	"pillgaze/internal/report"
 	"pillgaze/internal/share"
@@ -62,7 +63,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	store := share.NewStore(cfg.PinTTL)
+	store := share.NewStore[[]model.SharedMedication](cfg.PinTTL)
 	go store.RunJanitor(ctx, 15*time.Second)
 	sharer := &share.Handler{
 		Store:   store,
@@ -75,6 +76,20 @@ func main() {
 		httpx.BodyLimit(share.MaxBodyBytes),
 	))
 	mux.Handle("POST /api/share/claim", httpx.Chain(http.HandlerFunc(sharer.Claim),
+		httpx.NewRateLimiter(30, time.Minute).Middleware(),
+		httpx.BodyLimit(1<<10),
+	))
+
+	// Handoff back to the patient: own store and limiter, so a doctor's
+	// /api/share/claim never sees it and the other way round.
+	handoffs := share.NewStore[string](cfg.HandoffTTL)
+	go handoffs.RunJanitor(ctx, 15*time.Second)
+	handoff := &share.HandoffHandler{Store: handoffs, Limiter: share.NewFailureLimiter()}
+	mux.Handle("POST /api/handoff", httpx.Chain(http.HandlerFunc(handoff.Create),
+		httpx.NewRateLimiter(10, time.Minute).Middleware(),
+		httpx.BodyLimit(share.HandoffMaxBodyBytes),
+	))
+	mux.Handle("POST /api/handoff/claim", httpx.Chain(http.HandlerFunc(handoff.Claim),
 		httpx.NewRateLimiter(30, time.Minute).Middleware(),
 		httpx.BodyLimit(1<<10),
 	))

@@ -145,6 +145,23 @@ Response `200`: `{ "medications": [ /* Medication[] */ ] }`
 - `429`: příliš mnoho neúspěšných pokusů (`Retry-After`).
 - **Ochrana proti hádání PINu:** limit neúspěšných pokusů na IP **a globální limit**.
 
+### `POST /api/handoff` (lékař nebo blízký → pacient)
+Cesta zpět do telefonu pacienta: opravy od lékaře z `/doc` nebo léky vyplněné blízkým. Odesílatel ukáže kód, pacient ho opíše v nainstalované appce (odkaz nebo QR by se otevřel v prohlížeči, ne v appce z plochy).
+
+Request: `{ "data": "1z.eJy…" }`
+- `data`: zakódovaný seznam z frontendu (`encodeShare` v `familyShare.js`), tvar `<verze><z|j>.<base64url>`, max 12 000 znaků. **Backend obsah nerozbaluje ani nekontroluje,** jen ho drží. Validaci dělá frontend při otevření.
+
+Response `201`: stejný tvar jako `POST /api/share` (`pin`, `expires_at`, `expires_in`).
+- **Platnost 15 minut** (`HANDOFF_TTL`), blízký může kód nadiktovat do telefonu.
+- Vlastní úložiště PINů: kód pro pacienta nejde vyzvednout přes `/api/share/claim` a naopak.
+- Chyby: `400` špatný tvar `data`, `413` moc dlouhé, `503` úložiště je plné.
+
+### `POST /api/handoff/claim` (aplikace pacienta)
+Request: `{ "pin": "0482" }`
+Response `200`: `{ "data": "1z.eJy…" }`
+
+- Jednorázové, `404` / `429` stejně jako `POST /api/share/claim` (vlastní limit neúspěšných pokusů).
+
 ### `POST /api/report/pdf` (aplikace lékaře)
 Zpráva pro lékaře jako PDF: tabulka léků, interakce a co se zkontrolovat nepodařilo, se zdroji (DDInter, HemOnc). Nahrazuje tisk prohlížeče.
 

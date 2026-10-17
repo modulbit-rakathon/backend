@@ -1,4 +1,5 @@
-// Package share holds medication lists in memory under one-time 4-digit PINs.
+// Package share holds medication lists (and data handed back to the patient)
+// in memory under one-time 4-digit PINs.
 package share
 
 import (
@@ -9,8 +10,6 @@ import (
 	"math/big"
 	"sync"
 	"time"
-
-	"pillgaze/internal/model"
 )
 
 // ErrFull: no free PIN could be found (too many active shares).
@@ -24,26 +23,26 @@ const (
 	MockPIN = "0000"
 )
 
-type entry struct {
-	meds    []model.SharedMedication
+type entry[T any] struct {
+	value   T
 	expires time.Time
 }
 
-type Store struct {
+type Store[T any] struct {
 	ttl    time.Duration
 	now    func() time.Time
 	newPIN func() (string, error)
 
 	mu      sync.Mutex
-	entries map[string]entry
+	entries map[string]entry[T]
 }
 
-func NewStore(ttl time.Duration) *Store {
-	return &Store{
+func NewStore[T any](ttl time.Duration) *Store[T] {
+	return &Store[T]{
 		ttl:     ttl,
 		now:     time.Now,
 		newPIN:  randomPIN,
-		entries: map[string]entry{},
+		entries: map[string]entry[T]{},
 	}
 }
 
@@ -55,8 +54,8 @@ func randomPIN() (string, error) {
 	return fmt.Sprintf("%04d", n.Int64()), nil
 }
 
-// Create stores meds under a fresh PIN unique among active ones.
-func (s *Store) Create(meds []model.SharedMedication) (pin string, expires time.Time, err error) {
+// Create stores value under a fresh PIN unique among active ones.
+func (s *Store[T]) Create(value T) (pin string, expires time.Time, err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	now := s.now()
@@ -73,37 +72,38 @@ func (s *Store) Create(meds []model.SharedMedication) (pin string, expires time.
 			continue
 		}
 		expires = now.Add(s.ttl)
-		s.entries[pin] = entry{meds: meds, expires: expires}
+		s.entries[pin] = entry[T]{value: value, expires: expires}
 		return pin, expires, nil
 	}
 	return "", time.Time{}, ErrFull
 }
 
-// Claim returns and deletes the list for pin. Missing and expired PINs look
+// Claim returns and deletes the value for pin. Missing and expired PINs look
 // the same to the caller.
-func (s *Store) Claim(pin string) ([]model.SharedMedication, bool) {
+func (s *Store[T]) Claim(pin string) (T, bool) {
+	var zero T
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	e, ok := s.entries[pin]
 	if !ok {
-		return nil, false
+		return zero, false
 	}
 	delete(s.entries, pin)
 	if !s.now().Before(e.expires) {
-		return nil, false
+		return zero, false
 	}
-	return e.meds, true
+	return e.value, true
 }
 
-func (s *Store) TTL() time.Duration { return s.ttl }
+func (s *Store[T]) TTL() time.Duration { return s.ttl }
 
-func (s *Store) Len() int {
+func (s *Store[T]) Len() int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return len(s.entries)
 }
 
-func (s *Store) sweepLocked(now time.Time) {
+func (s *Store[T]) sweepLocked(now time.Time) {
 	for pin, e := range s.entries {
 		if !now.Before(e.expires) {
 			delete(s.entries, pin)
@@ -113,7 +113,7 @@ func (s *Store) sweepLocked(now time.Time) {
 
 // RunJanitor drops expired entries every interval until ctx is done, so
 // expired lists do not linger in memory between requests.
-func (s *Store) RunJanitor(ctx context.Context, interval time.Duration) {
+func (s *Store[T]) RunJanitor(ctx context.Context, interval time.Duration) {
 	t := time.NewTicker(interval)
 	defer t.Stop()
 	for {
